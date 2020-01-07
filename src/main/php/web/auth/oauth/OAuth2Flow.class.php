@@ -36,16 +36,22 @@ class OAuth2Flow implements Flow {
    * @throws lang.IllegalStateException
    */
   protected function token($payload) {
+    // \util\cmd\Console::writeLine('>>> ', $payload);
     $c= new HttpConnection($this->tokens);
-    $r= $c->post($payload, ['Accept' => 'application/x-www-form-urlencoded', 'User-Agent' => 'XP/OAuth2']);
+    $r= $c->post($payload, ['Accept' => 'application/x-www-form-urlencoded, application/json', 'User-Agent' => 'XP/OAuth2']);
     $body= Streams::readAll($r->in());
-    // DEBUG \util\cmd\Console::writeLine($body);
+    // \util\cmd\Console::writeLine('<<< ', $body);
 
     if (200 !== $r->statusCode()) {
       throw new IllegalStateException('Cannot get access token (#'.$r->statusCode().'): '.$body);
     }
 
-    parse_str($body, $token);
+    $type= $r->header('Content-Type')[0];
+    if (strstr($type, 'application/json')) {
+      $token= json_decode($body, true);
+    } else {
+      parse_str($body, $token);
+    }
     return $token;
   }
 
@@ -82,6 +88,7 @@ class OAuth2Flow implements Flow {
         'grant_type'    => 'authorization_code',
         'client_id'     => $this->consumer->key()->reveal(),
         'client_secret' => $this->consumer->secret()->reveal(),
+        'redirect_uri'  => $request->uri()->using()->params([])->create(),
         'code'          => $request->param('code'),
         'state'         => $state,
       ]);
