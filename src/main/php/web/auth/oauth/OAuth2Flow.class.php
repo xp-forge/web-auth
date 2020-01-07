@@ -10,7 +10,7 @@ use web\auth\Flow;
 use web\session\Sessions;
 
 class OAuth2Flow implements Flow {
-  private $auth, $tokens, $consumer, $rand;
+  private $auth, $tokens, $consumer, $scopes, $rand;
 
   /**
    * Creates a new OAuth 2 flow
@@ -18,11 +18,13 @@ class OAuth2Flow implements Flow {
    * @param  string|util.URI $auth
    * @param  string|util.URI $tokens
    * @param  web.auth.oauth.Token|string[]|util.Secret[] $consumer
+   * @param  string[] $scopes
    */
-  public function __construct($auth, $tokens, $consumer) {
+  public function __construct($auth, $tokens, $consumer, $scopes= ['user']) {
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
     $this->tokens= $tokens instanceof URI ? $tokens : new URI($tokens);
     $this->consumer= $consumer instanceof Token ? $consumer : new Token(...$consumer);
+    $this->scopes= $scopes;
     $this->rand= new Random();
   }
 
@@ -67,7 +69,7 @@ class OAuth2Flow implements Flow {
         'response_type' => 'code',
         'client_id'     => $this->consumer->key()->reveal(),
         'redirect_uri'  => $request->uri(),
-        'scope'         => 'user',
+        'scope'         => implode(' ', $this->scopes),
         'state'         => $state,
       ]);
       $response->answer(302);
