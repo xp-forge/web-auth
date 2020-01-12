@@ -21,9 +21,9 @@ class OAuth2FlowTest extends TestCase {
     new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
   }
 
-  #[@test]
-  public function redirects_to_auth() {
-    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
+  #[@test, @values([[['user']], [['user', 'openid']]])]
+  public function redirects_to_auth_and_passes_scope($scope) {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET], $scope);
 
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
@@ -32,10 +32,11 @@ class OAuth2FlowTest extends TestCase {
     $fixture->authenticate($req, $res, $session);
 
     $url= sprintf(
-      '%s?response_type=code&client_id=%s&redirect_uri=%s&scope=user&state=%s',
+      '%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&state=%s',
       self::AUTH,
       self::ID,
       urlencode('http://localhost/'),
+      implode('+', $scope),
       $session->value('oauth.state')
     );
     $this->assertEquals($url, $res->headers()['Location']);
