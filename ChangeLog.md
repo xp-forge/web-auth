@@ -3,9 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
-## 0.3.0 / 2020-01-07
+## 0.3.0 / 2020-01-12
 
-* Added support for JSON return payload from /authorize endpoint - @thekid
+* Added support for authenticating against Microsoft's Office 365:
+  - Added support for JSON responses when fetching OAuth2 tokens
+  - Added support for passing scope to OAuth2 flow
+  (@thekid)
 
 ## 0.2.0 / 2019-12-01
 
