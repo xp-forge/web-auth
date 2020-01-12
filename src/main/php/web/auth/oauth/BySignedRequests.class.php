@@ -3,6 +3,7 @@
 use peer\http\HttpConnection;
 
 class BySignedRequests implements Session {
+  private $signature;
 
   public function __construct(Signature $signature) {
     $this->signature= $signature;
@@ -16,4 +17,7 @@ class BySignedRequests implements Session {
       'Authorization' => $this->signature->header('GET', $url, $params),
     ]));
   }
+
+  /** @return web.auth.oauth.Signature */
+  public function signature() { return $this->signature; }
 }
