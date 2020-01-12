@@ -19,4 +19,10 @@ class ByAccessToken implements Session {
       'Authorization' => $this->type.' '.$this->token->reveal()
     ]));
   }
+
+  /** @return util.Secret */
+  public function token() { return $this->token; }
+
+  /** @return string */
+  public function type() { return $this->type; }
 }
