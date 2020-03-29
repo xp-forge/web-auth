@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 0.4.0 / 2020-03-29
+
+* Added support for text/plain and application/x-www-form-urlencoded
+  values to `Response::value()`
+  (@thekid)
+
 ## 0.3.0 / 2020-01-12
 
 * Added support for authenticating against Microsoft's Office 365:
