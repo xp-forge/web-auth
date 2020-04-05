@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 0.5.0 / 2020-04-05
+
+* Removed `session_state` parameter for OAuth 2.0 responses. See
+  https://stackoverflow.com/questions/24922550/azure-active-directory-session-state
+  (@thekid)
+
 ## 0.4.0 / 2020-03-29
 
 * Added support for text/plain and application/x-www-form-urlencoded
