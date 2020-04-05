@@ -95,8 +95,10 @@ class OAuth2Flow implements Flow {
       $session->register('oauth.token', $token);
 
       // Redirect to self, getting rid of "state" and "code" request parameters
+      $params= $request->params();
+      unset($params['state'], $params['code'], $params['session_state']);
       $response->answer(302);
-      $response->header('Location', $request->uri()->using()->param('state', null)->param('code', null)->create());
+      $response->header('Location', $request->uri()->using()->params($params)->create());
       return null;
     } else if ($token= $session->value('oauth.token')) {
 
