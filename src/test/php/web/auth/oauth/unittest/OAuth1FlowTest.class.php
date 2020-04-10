@@ -1,11 +1,9 @@
 <?php namespace web\auth\oauth\unittest;
 
 use unittest\TestCase;
-use web\Request;
-use web\Response;
+use web\{Request, Response};
 use web\auth\oauth\OAuth1Flow;
-use web\io\TestInput;
-use web\io\TestOutput;
+use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 
 class OAuth1FlowTest extends TestCase {

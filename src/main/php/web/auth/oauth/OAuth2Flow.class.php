@@ -3,9 +3,7 @@
 use io\streams\Streams;
 use lang\IllegalStateException;
 use peer\http\HttpConnection;
-use util\Random;
-use util\Secret;
-use util\URI;
+use util\{Random, Secret, URI};
 use web\auth\Flow;
 use web\session\Sessions;
 

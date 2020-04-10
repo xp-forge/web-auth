@@ -1,7 +1,6 @@
 <?php namespace web\auth\oauth\unittest;
 
-use io\streams\MemoryInputStream;
-use io\streams\Streams;
+use io\streams\{MemoryInputStream, Streams};
 use lang\FormatException;
 use peer\http\HttpResponse;
 use unittest\TestCase;

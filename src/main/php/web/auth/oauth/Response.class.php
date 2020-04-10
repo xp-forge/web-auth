@@ -3,8 +3,7 @@
 use io\streams\Streams;
 use lang\FormatException;
 use peer\http\HttpResponse;
-use text\json\Json;
-use text\json\StreamInput;
+use text\json\{Json, StreamInput};
 
 /**
  * Wraps a HTTP response

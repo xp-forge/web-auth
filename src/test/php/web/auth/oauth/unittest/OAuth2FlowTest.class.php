@@ -2,12 +2,9 @@
 
 use lang\IllegalStateException;
 use unittest\TestCase;
-use web\Request;
-use web\Response;
-use web\auth\oauth\OAuth2Flow;
-use web\auth\oauth\Session;
-use web\io\TestInput;
-use web\io\TestOutput;
+use web\{Request, Response};
+use web\auth\oauth\{OAuth2Flow, Session};
+use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 
 class OAuth2FlowTest extends TestCase {
