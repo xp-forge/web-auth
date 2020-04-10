@@ -3,6 +3,13 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 1.0.0 / 2020-04-10
+
+* Implemented xp-framework/rfc#334: Drop PHP 5.6:
+  . **Heads up:** Minimum required PHP version now is PHP 7.0.0
+  . Rewrote code base, grouping use statements
+  (@thekid)
+
 ## 0.5.0 / 2020-04-05
 
 * Removed `session_state` parameter for OAuth 2.0 responses. See
