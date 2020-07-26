@@ -8,6 +8,8 @@ use web\auth\Flow;
 use web\session\Sessions;
 
 class OAuth2Flow implements Flow {
+  const SESSION_KEY = 'oauth2::flow';
+
   private $auth, $tokens, $consumer, $scopes, $rand;
 
   /**
@@ -63,19 +65,18 @@ class OAuth2Flow implements Flow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
+    $state= $session->value(self::SESSION_KEY);
 
     // We have an access token, return an authenticated session
-    if ($token= $session->value('oauth.token')) {
-      return new ByAccessToken($token['access_token'], $token['token_type']);
+    if (isset($state['access_token'])) {
+      return new ByAccessToken($state['access_token'], $state['token_type']);
     }
 
     // Start authorization flow to acquire an access token
-    $state= $session->value('oauth.state');
     $server= $request->param('state');
-
     if (null === $state || null === $server) {
       $state= bin2hex($this->rand->bytes(16));
-      $session->register('oauth.state', $state);
+      $session->register(self::SESSION_KEY, $state);
 
       // Redirect the user to the authorization page
       $target= $this->auth->using()->params([
@@ -99,7 +100,7 @@ class OAuth2Flow implements Flow {
         'code'          => $request->param('code'),
         'state'         => $state,
       ]);
-      $session->register('oauth.token', $token);
+      $session->register(self::SESSION_KEY, $token);
 
       // Redirect to self, getting rid of "state" and "code" request parameters
       $params= $request->params();
@@ -108,7 +109,7 @@ class OAuth2Flow implements Flow {
       $response->header('Location', $request->uri()->using()->params($params)->create());
       return null;
     }
-    
-    throw new IllegalStateException('Flow error, session '.$state.' != request '.$request->param('state'));
+
+    throw new IllegalStateException('Flow error, session state '.$state.' != server state '.$server);
   }
 }

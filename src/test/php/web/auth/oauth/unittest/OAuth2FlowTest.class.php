@@ -34,7 +34,7 @@ class OAuth2FlowTest extends TestCase {
       self::ID,
       urlencode('http://localhost/'),
       implode('+', $scope),
-      $session->value('oauth.state')
+      $session->value(OAuth2Flow::SESSION_KEY)
     );
     $this->assertEquals($url, $res->headers()['Location']);
   }
@@ -46,7 +46,7 @@ class OAuth2FlowTest extends TestCase {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth.state', 'PREVIOUS_STATE');
+    $session->register(OAuth2Flow::SESSION_KEY, 'PREVIOUS_STATE');
 
     $fixture->authenticate($req, $res, $session);
 
@@ -55,7 +55,7 @@ class OAuth2FlowTest extends TestCase {
       self::AUTH,
       self::ID,
       urlencode('http://localhost/'),
-      $session->value('oauth.state')
+      $session->value(OAuth2Flow::SESSION_KEY)
     );
     $this->assertEquals($url, $res->headers()['Location']);
   }
@@ -71,12 +71,12 @@ class OAuth2FlowTest extends TestCase {
     $req= new Request(new TestInput('GET', '/?state='.$state.'&code=SERVER_CODE'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth.state', $state);
+    $session->register(OAuth2Flow::SESSION_KEY, $state);
 
     $fixture->authenticate($req, $res, $session);
 
     $this->assertEquals('http://localhost/', $res->headers()['Location']);
-    $this->assertEquals($token, $session->value('oauth.token'));
+    $this->assertEquals($token, $session->value(OAuth2Flow::SESSION_KEY));
   }
 
   #[@test, @expect(IllegalStateException::class)]
@@ -86,7 +86,7 @@ class OAuth2FlowTest extends TestCase {
     $req= new Request(new TestInput('GET', '/?state=SERVER_STATE&code=SERVER_CODE'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth.state', 'CLIENT_STATE');
+    $session->register(OAuth2Flow::SESSION_KEY, 'CLIENT_STATE');
 
     $fixture->authenticate($req, $res, $session);
   }
@@ -99,8 +99,7 @@ class OAuth2FlowTest extends TestCase {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth.state', 'SHARED_STATE');
-    $session->register('oauth.token', $token);
+    $session->register(OAuth2Flow::SESSION_KEY, $token);
 
     $this->assertInstanceOf(Session::class, $fixture->authenticate($req, $res, $session));
   }
