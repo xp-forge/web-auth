@@ -54,7 +54,8 @@ class OAuth1Flow implements Flow {
       return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
-    if (null === $state) {
+    $server= $request->param('oauth_token');
+    if (null === $state || null === $server) {
 
       // Start authenticaton flow by obtaining request token and store for later use
       $token= $this->request('/request_token');
@@ -64,7 +65,7 @@ class OAuth1Flow implements Flow {
       $response->answer(302);
       $response->header('Location', $this->service.'/authenticate?oauth_token='.urlencode($token['oauth_token']));
       return;
-    } else if ($state['oauth_token'] === $request->param('oauth_token')) {
+    } else if ($state['oauth_token'] === $server) {
 
       // Back from authentication redirect, upgrade request token to access token
       $access= $this->request('/access_token', $state['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
@@ -76,6 +77,6 @@ class OAuth1Flow implements Flow {
       return;
     }
 
-    throw new IllegalStateException('Flow error');
+    throw new IllegalStateException('Flow error, request token '.$state['oauth_token'].' != server token '.$server);
   }
 }

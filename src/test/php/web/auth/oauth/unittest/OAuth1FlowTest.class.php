@@ -1,5 +1,6 @@
 <?php namespace web\auth\oauth\unittest;
 
+use lang\IllegalStateException;
 use unittest\TestCase;
 use web\auth\oauth\{OAuth1Flow, Session};
 use web\io\{TestInput, TestOutput};
@@ -48,6 +49,18 @@ class OAuth1FlowTest extends TestCase {
 
     $this->assertEquals('http://localhost/', $res->headers()['Location']);
     $this->assertEquals($access, $session->value(OAuth1Flow::SESSION_KEY));
+  }
+
+  #[@test, @expect(IllegalStateException::class)]
+  public function raises_exception_on_state_mismatch() {
+    $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
+
+    $req= new Request(new TestInput('GET', '/?oauth_token=MISMATCHED-TOKEN&oauth_verifier=ABC'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth1Flow::SESSION_KEY, ['oauth_token' => 'REQUEST-TOKEN']);
+
+    $fixture->authenticate($req, $res, $session);
   }
 
   #[@test]
