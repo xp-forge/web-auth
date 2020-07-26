@@ -6,6 +6,8 @@ use peer\http\HttpConnection;
 use web\auth\Flow;
 
 class OAuth1Flow implements Flow {
+  const SESSION_KEY = 'oauth1::flow';
+
   private $service, $signature;
 
   /**
@@ -45,31 +47,33 @@ class OAuth1Flow implements Flow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $token= $session->value('oauth.request');
-    if (null === $token) {
+    $state= $session->value(self::SESSION_KEY);
+
+    // We have an access token, return an authenticated session
+    if (isset($state['access'])) {
+      return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
+    }
+
+    if (null === $state) {
 
       // Start authenticaton flow by obtaining request token and store for later use
       $token= $this->request('/request_token');
-      $session->register('oauth.request', $token);
+      $session->register(self::SESSION_KEY, $token);
 
       // Redirect user to authentication
       $response->answer(302);
       $response->header('Location', $this->service.'/authenticate?oauth_token='.urlencode($token['oauth_token']));
       return;
-    } else if ($token['oauth_token'] === $request->param('oauth_token')) {
+    } else if ($state['oauth_token'] === $request->param('oauth_token')) {
 
       // Back from authentication redirect, upgrade request token to access token
-      $access= $this->request('/access_token', $token['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
-      $session->register('oauth.access', $access);
+      $access= $this->request('/access_token', $state['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
+      $session->register(self::SESSION_KEY, $access + ['access' => true]);
 
       // Redirect back, removing GET parameters
       $response->answer(302);
       $response->header('Location', $request->uri()->using()->param('oauth_token', null)->param('oauth_verifier', null)->create());
       return;
-    } else if ($access= $session->value('oauth.access')) {
-
-      // Finally, return an authenticated session
-      return new BySignedRequests($this->signature->with(new Token($access['oauth_token'], $access['oauth_token_secret'])));
     }
 
     throw new IllegalStateException('Flow error');
