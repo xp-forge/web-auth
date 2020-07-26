@@ -5,7 +5,7 @@ Web Authentication change log
 
 ## 1.0.1 / 2020-07-26
 
-* Fixed OAuth2 flow throwing exceptions when a previous authorization flow
+* Fixed OAuth flows throwing exceptions when a previous authorization flow
   was not completed successfully. Instead, retry authorization.
   (@thekid)
 
