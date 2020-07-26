@@ -63,8 +63,17 @@ class OAuth2Flow implements Flow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
+
+    // We have an access token, return an authenticated session
+    if ($token= $session->value('oauth.token')) {
+      return new ByAccessToken($token['access_token'], $token['token_type']);
+    }
+
+    // Start authorization flow to acquire an access token
     $state= $session->value('oauth.state');
-    if (null === $state) {
+    $server= $request->param('state');
+
+    if (null === $state || null === $server) {
       $state= bin2hex($this->rand->bytes(16));
       $session->register('oauth.state', $state);
 
@@ -79,7 +88,7 @@ class OAuth2Flow implements Flow {
       $response->answer(302);
       $response->header('Location', $target->create());
       return null;
-    } else if ($request->param('state') === $state) {
+    } else if ($server === $state) {
 
       // Exchange the auth code for an access token
       $token= $this->token([
@@ -98,10 +107,6 @@ class OAuth2Flow implements Flow {
       $response->answer(302);
       $response->header('Location', $request->uri()->using()->params($params)->create());
       return null;
-    } else if ($token= $session->value('oauth.token')) {
-
-      // Finally, return an authenticated session
-      return new ByAccessToken($token['access_token'], $token['token_type']);
     }
     
     throw new IllegalStateException('Flow error, session '.$state.' != request '.$request->param('state'));

@@ -2,10 +2,10 @@
 
 use lang\IllegalStateException;
 use unittest\TestCase;
-use web\{Request, Response};
 use web\auth\oauth\{OAuth2Flow, Session};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
+use web\{Request, Response};
 
 class OAuth2FlowTest extends TestCase {
   const AUTH   = 'https://example.com/oauth/authorize';
@@ -34,6 +34,27 @@ class OAuth2FlowTest extends TestCase {
       self::ID,
       urlencode('http://localhost/'),
       implode('+', $scope),
+      $session->value('oauth.state')
+    );
+    $this->assertEquals($url, $res->headers()['Location']);
+  }
+
+  #[@test]
+  public function redirects_to_auth_when_previous_redirect_incomplete() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
+
+    $req= new Request(new TestInput('GET', '/'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register('oauth.state', 'PREVIOUS_STATE');
+
+    $fixture->authenticate($req, $res, $session);
+
+    $url= sprintf(
+      '%s?response_type=code&client_id=%s&redirect_uri=%s&scope=user&state=%s',
+      self::AUTH,
+      self::ID,
+      urlencode('http://localhost/'),
       $session->value('oauth.state')
     );
     $this->assertEquals($url, $res->headers()['Location']);
