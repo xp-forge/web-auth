@@ -1,7 +1,7 @@
 <?php namespace web\auth\oauth\unittest;
 
 use lang\IllegalStateException;
-use unittest\TestCase;
+use unittest\{Expect, Test, TestCase, Values};
 use web\auth\oauth\{OAuth2Flow, Session};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -13,12 +13,12 @@ class OAuth2FlowTest extends TestCase {
   const ID     = 'bf396750';
   const SECRET = '5ebe2294ecd0e0f08eab7690d2a6ee69';
 
-  #[@test]
+  #[Test]
   public function can_create() {
     new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
   }
 
-  #[@test, @values([[['user']], [['user', 'openid']]])]
+  #[Test, Values([[['user']], [['user', 'openid']]])]
   public function redirects_to_auth_and_passes_scope($scope) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET], $scope);
 
@@ -39,7 +39,7 @@ class OAuth2FlowTest extends TestCase {
     $this->assertEquals($url, $res->headers()['Location']);
   }
 
-  #[@test]
+  #[Test]
   public function redirects_to_auth_when_previous_redirect_incomplete() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
 
@@ -60,7 +60,7 @@ class OAuth2FlowTest extends TestCase {
     $this->assertEquals($url, $res->headers()['Location']);
   }
 
-  #[@test]
+  #[Test]
   public function gets_access_token_and_redirects_to_self() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHARED_STATE';
@@ -79,7 +79,7 @@ class OAuth2FlowTest extends TestCase {
     $this->assertEquals($token, $session->value(OAuth2Flow::SESSION_KEY));
   }
 
-  #[@test, @expect(IllegalStateException::class)]
+  #[Test, Expect(IllegalStateException::class)]
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);
 
@@ -91,7 +91,7 @@ class OAuth2FlowTest extends TestCase {
     $fixture->authenticate($req, $res, $session);
   }
 
-  #[@test]
+  #[Test]
   public function returns_session() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, [self::ID, self::SECRET]);

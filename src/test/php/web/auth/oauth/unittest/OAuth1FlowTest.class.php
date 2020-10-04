@@ -1,7 +1,7 @@
 <?php namespace web\auth\oauth\unittest;
 
 use lang\IllegalStateException;
-use unittest\TestCase;
+use unittest\{Expect, Test, TestCase};
 use web\auth\oauth\{OAuth1Flow, Session};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -12,12 +12,12 @@ class OAuth1FlowTest extends TestCase {
   const ID      = 'bf396750';
   const SECRET  = '5ebe2294ecd0e0f08eab7690d2a6ee69';
 
-  #[@test]
+  #[Test]
   public function can_create() {
     new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
   }
 
-  #[@test]
+  #[Test]
   public function fetches_request_token_then_redirects_to_auth() {
     $request= ['oauth_token' => 'REQUEST-TOKEN'];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
@@ -33,7 +33,7 @@ class OAuth1FlowTest extends TestCase {
     $this->assertEquals(self::AUTH.'/authenticate?oauth_token=REQUEST-TOKEN', $res->headers()['Location']);
   }
 
-  #[@test]
+  #[Test]
   public function exchanges_request_token_for_access_token() {
     $access= ['oauth_token' => 'ACCESS-TOKEN', 'oauth_token_secret' => 'XYZ', 'access' => true];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
@@ -51,7 +51,7 @@ class OAuth1FlowTest extends TestCase {
     $this->assertEquals($access, $session->value(OAuth1Flow::SESSION_KEY));
   }
 
-  #[@test, @expect(IllegalStateException::class)]
+  #[Test, Expect(IllegalStateException::class)]
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
 
@@ -63,7 +63,7 @@ class OAuth1FlowTest extends TestCase {
     $fixture->authenticate($req, $res, $session);
   }
 
-  #[@test]
+  #[Test]
   public function returns_session() {
     $access= ['oauth_token' => 'ACCESS-TOKEN', 'oauth_token_secret' => 'XYZ', 'access' => true];
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
