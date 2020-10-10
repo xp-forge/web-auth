@@ -7,10 +7,10 @@ Web Authentication
 [![Requires PHP 7.0+](https://raw.githubusercontent.com/xp-framework/web/master/static/php-7_0plus.png)](http://php.net/)
 [![Latest Stable Version](https://poser.pugx.org/xp-forge/web-auth/version.png)](https://packagist.org/packages/xp-forge/web-auth)
 
-Web Authentication
+Authentication for web services. Uses sessions to store authentication information.
 
-Example
--------
+Examples
+--------
 Authentication via Twitter:
 
 ```php
@@ -52,4 +52,4 @@ $auth= new Authentication($flow, new ForTesting(), function($session) {
 return ['/' => new Filters([$auth], function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/html');
 })];
-``` 
+```
