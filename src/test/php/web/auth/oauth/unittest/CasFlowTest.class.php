@@ -9,7 +9,7 @@ use web\session\ForTesting;
 use web\{Request, Response, Error};
 
 class CasFlowTest extends TestCase {
-  const SSO     = 'https://example.com/sso/login';
+  const SSO     = 'https://example.com/sso';
   const SERVICE = 'https://service.example.com';
   const TICKET  = 'ST-1856339-aA5Yuvrxzpv8Tau1cYQ7';
 
