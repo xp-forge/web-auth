@@ -1,7 +1,7 @@
 <?php namespace web\auth;
 
-use web\Filter;
 use web\session\Sessions;
+use web\{Filter, Filters};
 
 class Authentication implements Filter {
   private $flow, $sessions, $lookup;
@@ -17,6 +17,16 @@ class Authentication implements Filter {
     $this->flow= $flow;
     $this->sessions= $sessions;
     $this->lookup= $lookup;
+  }
+
+  /**
+   * Require authentication for a given handler
+   *
+   * @param  web.Handler|function(web.Request, web.Response): var $handler
+   * @return web.Handler
+   */
+  public function required($handler) {
+    return new Filters([$this], $handler);
   }
 
   /**
