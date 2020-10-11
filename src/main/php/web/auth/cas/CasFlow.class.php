@@ -84,10 +84,17 @@ class CasFlow implements Flow {
       $session->register(self::SESSION_KEY, $user);
       $response->answer(302);
       $response->header('Location', $service->using()->param('_', null)->fragment($request->param('_'), false)->create());
-      return;
+      return null;
     }
 
-    // Send redirect using JavaScript to capture URL fragments (see issue #2).
+    // This is only for test code, real request URIs will never have a fragment
+    // as these are a purely client-side concept
+    if ($fragment= $uri->fragment()) {
+      $uri= $uri->using()->param('_', $fragment)->fragment(null)->create();
+    }
+
+    // Send redirect using JavaScript to capture URL fragments.
+    //
     // Include meta refresh in body as fallback for when JavaScript is disabled,
     // in which case we lose the fragment, but still offer a degraded service.
     // Do not move this to HTTP headers to ensure the body has been parsed, and
@@ -116,5 +123,6 @@ class CasFlow implements Flow {
       $target
     );
     $response->send($redirect, 'text/html');
+    return null;
   }
 }

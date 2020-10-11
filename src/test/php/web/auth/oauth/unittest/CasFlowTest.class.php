@@ -22,6 +22,12 @@ class CasFlowTest extends TestCase {
     yield ['/?a=b&c=d'];
   }
 
+  /** @return iterable */
+  private function fragments() {
+    yield ['top'];
+    yield ['/users/~test'];
+  }
+
   /**
    * Asserts a given response redirects to a given SSO login
    *
@@ -90,6 +96,48 @@ class CasFlowTest extends TestCase {
       self::SERVICE.$path,
       $this->authenticate(new CasFlow(self::SSO, new ServiceURL(self::SERVICE)), $path)
     );
+  }
+
+  #[Test, Values('fragments')]
+  public function redirects_to_sso_with_fragment_in_special_parameter($fragment) {
+    $this->assertLoginWith(
+      'http://localhost/?_='.urlencode($fragment),
+      $this->authenticate(new CasFlow(self::SSO), '/#'.$fragment)
+    );
+  }
+
+  #[Test, Values('fragments')]
+  public function redirects_to_sso_with_fragment_in_special_parameter_using_request($fragment) {
+    $this->assertLoginWith(
+      'http://localhost/?_='.urlencode($fragment),
+      $this->authenticate(new CasFlow(self::SSO, new UseRequest()), '/#'.$fragment)
+    );
+  }
+
+  #[Test, Values('fragments')]
+  public function redirects_to_sso_with_fragment_in_special_parameter_given_service($fragment) {
+    $this->assertLoginWith(
+      self::SERVICE.'/?_='.urlencode($fragment),
+      $this->authenticate(new CasFlow(self::SSO, new ServiceURL(self::SERVICE)), '/#'.$fragment)
+    );
+  }
+
+  #[Test, Values('fragments')]
+  public function redirects_to_self_with_fragment_from_special_parameter($fragment) {
+    $fixture= new class(self::SSO) extends CasFlow {
+      public function validate($ticket, $service) {
+        return CasFlowTest::response('
+          <cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
+            <cas:authenticationSuccess>
+              <cas:user>test</cas:user>
+            </cas:authenticationSuccess>
+          </cas:serviceResponse>
+        ');
+      }
+    };
+
+    $res= $this->authenticate($fixture, '/?_='.urlencode($fragment).'&ticket='.self::TICKET);
+    $this->assertEquals('http://localhost/#'.$fragment, $res->headers()['Location']);
   }
 
   #[Test]

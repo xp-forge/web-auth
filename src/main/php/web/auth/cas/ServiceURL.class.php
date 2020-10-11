@@ -23,6 +23,7 @@ class ServiceURL implements URL {
     return $this->uri->using()
       ->path(rtrim($this->uri->path(), '/').$request->uri()->path())
       ->query($request->uri()->query())
+      ->fragment($request->uri()->fragment(), false)
       ->create()
     ;
   }
