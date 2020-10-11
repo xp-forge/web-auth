@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 1.1.0 / 2020-10-11
+
+* Merged PR #1: Add CAS login flow, supporting CAS protocol version 2.0+,
+  see https://apereo.github.io/cas
+  (@thekid)
+
 ## 1.0.1 / 2020-07-26
 
 * Fixed OAuth flows throwing exceptions when a previous authorization flow

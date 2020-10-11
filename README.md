@@ -53,3 +53,19 @@ return ['/' => new Filters([$auth], function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/html');
 })];
 ```
+
+Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
+
+```php
+use web\auth\Authentication;
+use web\auth\cas\CasFlow;
+use web\session\ForTesting;
+use web\Filters;
+
+$flow= new CasFlow('https://sso.example.com/');
+$auth= new Authentication($flow, new ForTesting());
+
+return ['/' => new Filters([$auth], function($req, $res) {
+  $res->send('Hello @'.$req->value('user')['username'], 'text/html');
+})];
+```
