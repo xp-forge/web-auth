@@ -3,6 +3,8 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #2: Add `Authentication::required()` method - @thekid
+
 ## 1.1.0 / 2020-10-11
 
 * Merged PR #1: Add CAS login flow, supporting CAS protocol version 2.0+,
