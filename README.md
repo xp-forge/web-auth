@@ -17,7 +17,6 @@ Authentication via Twitter:
 use web\auth\Authentication;
 use web\auth\oauth\OAuth1Flow;
 use web\session\ForTesting;
-use web\Filters;
 
 $flow= new OAuth1Flow('https://api.twitter.com/oauth', [
   $credentials->named('twitter_oauth_key'),
@@ -27,7 +26,7 @@ $auth= new Authentication($flow, new ForTesting(), function($session) {
   return $session->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
 });
 
-return ['/' => new Filters([$auth], function($req, $res) {
+return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['screen_name'], 'text/html');
 })];
 ```
@@ -38,7 +37,6 @@ Authentication via GitHub:
 use web\auth\Authentication;
 use web\auth\oauth\OAuth2Flow;
 use web\session\ForTesting;
-use web\Filters;
 
 $flow= new OAuth2Flow(
   'https://github.com/login/oauth/authorize',
@@ -49,7 +47,7 @@ $auth= new Authentication($flow, new ForTesting(), function($session) {
   return $session->fetch('https://api.github.com/user')->value();
 });
 
-return ['/' => new Filters([$auth], function($req, $res) {
+return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/html');
 })];
 ```
@@ -60,12 +58,11 @@ Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication 
 use web\auth\Authentication;
 use web\auth\cas\CasFlow;
 use web\session\ForTesting;
-use web\Filters;
 
 $flow= new CasFlow('https://sso.example.com/');
 $auth= new Authentication($flow, new ForTesting());
 
-return ['/' => new Filters([$auth], function($req, $res) {
+return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['username'], 'text/html');
 })];
 ```
