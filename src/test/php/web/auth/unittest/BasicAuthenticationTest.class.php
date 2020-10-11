@@ -14,8 +14,8 @@ class BasicAuthenticationTest {
 
   #[Before]
   public function setUp() {
-    $this->login= function($user, $pass) {
-      return 'test' === $user && 'secret' === $pass ? ['username' => 'test'] : null;
+    $this->login= function($user, $secret) {
+      return 'test' === $user && $secret->equals('secret') ? ['username' => 'test'] : null;
     };
   }
 

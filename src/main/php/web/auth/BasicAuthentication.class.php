@@ -1,5 +1,6 @@
 <?php namespace web\auth;
 
+use util\Secret;
 use web\{Filter, Filters};
 
 /**
@@ -15,11 +16,11 @@ class BasicAuthentication implements Filter {
    * Creates a basic authentication instance
    *
    * @param  string $realm
-   * @param  function(string, string): var $login
+   * @param  function(string, util.Secret): var $login
    */
-  public function __construct(string $realm, callable $login) {
+  public function __construct(string $realm, $login) {
     $this->realm= $realm;
-    $this->login= $login;
+    $this->login= cast($login, 'function(string, util.Secret): var');
   }
 
   /**
@@ -44,7 +45,8 @@ class BasicAuthentication implements Filter {
   public function filter($req, $res, $invocation) {
     if (1 === sscanf($req->header('Authorization'), "Basic %[^\r]", $credentials)) {
       if (2 === sscanf(base64_decode($credentials), "%[^:]:%[^\r]", $username, $password)) {
-        if (null !== ($user= ($this->login)($username, $password))) {
+        $secret= new Secret($password);
+        if (null !== ($user= ($this->login)($username, $secret))) {
           return $invocation->proceed($req->pass('user', $user), $res);
         }
       }
