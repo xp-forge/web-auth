@@ -3,10 +3,11 @@
 use io\streams\{MemoryInputStream, Streams};
 use lang\FormatException;
 use peer\http\HttpResponse;
+use unittest\Assert;
 use unittest\{Expect, Test, TestCase, Values};
 use web\auth\oauth\Response;
 
-class ResponseTest extends TestCase {
+class ResponseTest {
 
   /** Returns a HTTP response from given headers and body with a 200 status code */
   private function response($headers= '', $body= '') {
@@ -20,48 +21,48 @@ class ResponseTest extends TestCase {
 
   #[Test]
   public function status() {
-    $this->assertEquals(200, $this->response()->status());
+    Assert::equals(200, $this->response()->status());
   }
 
   #[Test]
   public function empty_headers() {
-    $this->assertEquals([], $this->response()->headers());
+    Assert::equals([], $this->response()->headers());
   }
 
   #[Test]
   public function headers() {
     $fixture= $this->response("Content-Type: text/html\r\n\r\n");
-    $this->assertEquals(['Content-Type' => 'text/html'], $fixture->headers());
+    Assert::equals(['Content-Type' => 'text/html'], $fixture->headers());
   }
 
   #[Test]
   public function header() {
     $fixture= $this->response("Content-Type: text/html\r\n\r\n");
-    $this->assertEquals('text/html', $fixture->header('Content-Type'));
+    Assert::equals('text/html', $fixture->header('Content-Type'));
   }
 
   #[Test]
   public function non_existant_header() {
     $fixture= $this->response();
-    $this->assertNull($fixture->header('Content-Type'));
+    Assert::null($fixture->header('Content-Type'));
   }
 
   #[Test]
   public function text_value() {
     $fixture= $this->response("Content-Type: text/plain\r\nContent-Length: 4\r\n", 'Test');
-    $this->assertEquals('Test', $fixture->value());
+    Assert::equals('Test', $fixture->value());
   }
 
   #[Test, Values(['application/json', 'application/vnd.api+json', 'application/vnd.github.v3+json'])]
   public function json_value($mime) {
     $fixture= $this->response("Content-Type: $mime\r\nContent-Length: 6\r\n", '"Test"');
-    $this->assertEquals('Test', $fixture->value());
+    Assert::equals('Test', $fixture->value());
   }
 
   #[Test]
   public function form_encoded_value() {
     $fixture= $this->response("Content-Type: application/x-www-form-urlencoded\r\nContent-Length: 8\r\n", 'key=Test');
-    $this->assertEquals(['key' => 'Test'], $fixture->value());
+    Assert::equals(['key' => 'Test'], $fixture->value());
   }
 
   #[Test, Expect(['class' => FormatException::class, 'withMessage' => 'Cannot convert content without a mime type to a value'])]
@@ -77,6 +78,6 @@ class ResponseTest extends TestCase {
   #[Test]
   public function stream() {
     $fixture= $this->response("Content-Type: text/plain\r\nContent-Length: 4\r\n", 'Test');
-    $this->assertEquals('Test', Streams::readAll($fixture->stream()));
+    Assert::equals('Test', Streams::readAll($fixture->stream()));
   }
 }

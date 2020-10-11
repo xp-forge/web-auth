@@ -1,13 +1,14 @@
 <?php namespace web\auth\oauth\unittest;
 
 use lang\IllegalStateException;
+use unittest\Assert;
 use unittest\{Expect, Test, TestCase, Values};
 use web\auth\oauth\{OAuth2Flow, Session};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
 
-class OAuth2FlowTest extends TestCase {
+class OAuth2FlowTest {
   const AUTH   = 'https://example.com/oauth/authorize';
   const TOKENS = 'https://example.com/oauth/access_token';
   const ID     = 'bf396750';
@@ -36,7 +37,7 @@ class OAuth2FlowTest extends TestCase {
       implode('+', $scope),
       $session->value(OAuth2Flow::SESSION_KEY)
     );
-    $this->assertEquals($url, $res->headers()['Location']);
+    Assert::equals($url, $res->headers()['Location']);
   }
 
   #[Test]
@@ -57,7 +58,7 @@ class OAuth2FlowTest extends TestCase {
       urlencode('http://localhost/'),
       $session->value(OAuth2Flow::SESSION_KEY)
     );
-    $this->assertEquals($url, $res->headers()['Location']);
+    Assert::equals($url, $res->headers()['Location']);
   }
 
   #[Test]
@@ -75,8 +76,8 @@ class OAuth2FlowTest extends TestCase {
 
     $fixture->authenticate($req, $res, $session);
 
-    $this->assertEquals('http://localhost/', $res->headers()['Location']);
-    $this->assertEquals($token, $session->value(OAuth2Flow::SESSION_KEY));
+    Assert::equals('http://localhost/', $res->headers()['Location']);
+    Assert::equals($token, $session->value(OAuth2Flow::SESSION_KEY));
   }
 
   #[Test, Expect(IllegalStateException::class)]
@@ -101,6 +102,6 @@ class OAuth2FlowTest extends TestCase {
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, $token);
 
-    $this->assertInstanceOf(Session::class, $fixture->authenticate($req, $res, $session));
+    Assert::instance(Session::class, $fixture->authenticate($req, $res, $session));
   }
 }

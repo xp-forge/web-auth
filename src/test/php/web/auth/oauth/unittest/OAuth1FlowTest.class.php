@@ -1,13 +1,14 @@
 <?php namespace web\auth\oauth\unittest;
 
 use lang\IllegalStateException;
+use unittest\Assert;
 use unittest\{Expect, Test, TestCase};
 use web\auth\oauth\{OAuth1Flow, Session};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
 
-class OAuth1FlowTest extends TestCase {
+class OAuth1FlowTest {
   const AUTH    = 'https://example.com/oauth';
   const ID      = 'bf396750';
   const SECRET  = '5ebe2294ecd0e0f08eab7690d2a6ee69';
@@ -30,7 +31,7 @@ class OAuth1FlowTest extends TestCase {
 
     $fixture->authenticate($req, $res, $session);
 
-    $this->assertEquals(self::AUTH.'/authenticate?oauth_token=REQUEST-TOKEN', $res->headers()['Location']);
+    Assert::equals(self::AUTH.'/authenticate?oauth_token=REQUEST-TOKEN', $res->headers()['Location']);
   }
 
   #[Test]
@@ -47,8 +48,8 @@ class OAuth1FlowTest extends TestCase {
 
     $fixture->authenticate($req, $res, $session);
 
-    $this->assertEquals('http://localhost/', $res->headers()['Location']);
-    $this->assertEquals($access, $session->value(OAuth1Flow::SESSION_KEY));
+    Assert::equals('http://localhost/', $res->headers()['Location']);
+    Assert::equals($access, $session->value(OAuth1Flow::SESSION_KEY));
   }
 
   #[Test, Expect(IllegalStateException::class)]
@@ -73,6 +74,6 @@ class OAuth1FlowTest extends TestCase {
     $session= (new ForTesting())->create();
     $session->register(OAuth1Flow::SESSION_KEY, $access);
 
-    $this->assertInstanceOf(Session::class, $fixture->authenticate($req, $res, $session));
+    Assert::instance(Session::class, $fixture->authenticate($req, $res, $session));
   }
 }

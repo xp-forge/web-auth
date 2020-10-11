@@ -2,13 +2,14 @@
 
 use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
+use unittest\Assert;
 use unittest\{Expect, Test, TestCase, Values};
-use web\auth\cas\{CasFlow, UseRequest, ServiceURL};
+use web\auth\cas\{CasFlow, ServiceURL, UseRequest};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
-use web\{Request, Response, Error};
+use web\{Error, Request, Response};
 
-class CasFlowTest extends TestCase {
+class CasFlowTest {
   const SSO     = 'https://example.com/sso';
   const SERVICE = 'https://service.example.com';
   const TICKET  = 'ST-1856339-aA5Yuvrxzpv8Tau1cYQ7';
@@ -37,7 +38,7 @@ class CasFlowTest extends TestCase {
    */
   private function assertLoginWith($service, $res) {
     preg_match('/<meta http-equiv="refresh" content="1; URL=([^"]+)">/', $res->output()->bytes(), $m);
-    $this->assertEquals(self::SSO.'/login?service='.urlencode($service), $m[1]);
+    Assert::equals(self::SSO.'/login?service='.urlencode($service), $m[1]);
   }
 
   /**
@@ -137,7 +138,7 @@ class CasFlowTest extends TestCase {
     };
 
     $res= $this->authenticate($fixture, '/?_='.urlencode($fragment).'&ticket='.self::TICKET);
-    $this->assertEquals('http://localhost/#'.$fragment, $res->headers()['Location']);
+    Assert::equals('http://localhost/#'.$fragment, $res->headers()['Location']);
   }
 
   #[Test]
@@ -155,7 +156,7 @@ class CasFlowTest extends TestCase {
     };
 
     $res= $this->authenticate($fixture, '/?ticket='.self::TICKET);
-    $this->assertEquals('http://localhost/', $res->headers()['Location']);
+    Assert::equals('http://localhost/', $res->headers()['Location']);
   }
 
   #[Test]
@@ -174,7 +175,7 @@ class CasFlowTest extends TestCase {
     $session= (new ForTesting())->create();
 
     $this->authenticate($fixture, '/?ticket='.self::TICKET, $session);
-    $this->assertEquals(
+    Assert::equals(
       ['username' => 'test'],
       $session->value(CasFlow::SESSION_KEY)
     );
@@ -200,7 +201,7 @@ class CasFlowTest extends TestCase {
     $session= (new ForTesting())->create();
 
     $this->authenticate($fixture, '/?ticket='.self::TICKET, $session);
-    $this->assertEquals(
+    Assert::equals(
       ['username' => 'test', 'givenName' => 'John Doe', 'email' => 'jdoe@example.org'],
       $session->value(CasFlow::SESSION_KEY)
     );
@@ -218,7 +219,7 @@ class CasFlowTest extends TestCase {
     $res= new Response(new TestOutput());
     $result= $fixture->authenticate($req, $res, $session);
 
-    $this->assertEquals($user, $result);
+    Assert::equals($user, $result);
   }
 
   #[Test, Expect(class: Error::class, withMessage: '/INVALID_TICKET: Ticket .+ not recognized/')]
