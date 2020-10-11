@@ -1,4 +1,4 @@
-<?php namespace web\auth\oauth\unittest;
+<?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
 use unittest\Assert;

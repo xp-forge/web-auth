@@ -1,4 +1,4 @@
-<?php namespace web\auth\oauth\unittest;
+<?php namespace web\auth\unittest;
 
 use unittest\Assert;
 use web\Handler;
