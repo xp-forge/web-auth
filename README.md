@@ -36,8 +36,8 @@ $flow= new OAuth1Flow('https://api.twitter.com/oauth', [
   $credentials->named('twitter_oauth_key'),
   $credentials->named('twitter_oauth_secret'),
 ]);
-$auth= new SessionBased($flow, new ForTesting(), function($session) {
-  return $session->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
+$auth= new SessionBased($flow, new ForTesting(), function($client) {
+  return $client->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
 });
 
 return ['/' => $auth->required(function($req, $res) {
@@ -57,8 +57,8 @@ $flow= new OAuth2Flow(
   'https://github.com/login/oauth/access_token',
   [$credentials->named('github_oauth_key'), $credentials->named('github_oauth_secret')],
 );
-$auth= new SessionBased($flow, new ForTesting(), function($session) {
-  return $session->fetch('https://api.github.com/user')->value();
+$auth= new SessionBased($flow, new ForTesting(), function($client) {
+  return $client->fetch('https://api.github.com/user')->value();
 });
 
 return ['/' => $auth->required(function($req, $res) {
