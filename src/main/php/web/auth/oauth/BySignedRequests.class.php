@@ -2,7 +2,7 @@
 
 use peer\http\HttpConnection;
 
-class BySignedRequests implements Session {
+class BySignedRequests implements Client {
   private $signature;
 
   public function __construct(Signature $signature) {

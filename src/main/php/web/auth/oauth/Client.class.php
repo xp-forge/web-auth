@@ -1,6 +1,6 @@
 <?php namespace web\auth\oauth;
 
-interface Session {
+interface Client {
 
   public function fetch($url, $params= []);
 }

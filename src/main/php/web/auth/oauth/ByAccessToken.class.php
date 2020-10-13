@@ -3,7 +3,7 @@
 use peer\http\HttpConnection;
 use util\Secret;
 
-class ByAccessToken implements Session {
+class ByAccessToken implements Client {
   private $token, $type;
 
   public function __construct($token, $type= 'Bearer') {
