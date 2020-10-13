@@ -14,9 +14,9 @@ Examples
 HTTP basic authentication:
 
 ```php
-use web\auth\BasicAuthentication;
+use web\auth\Basic;
 
-$auth= new BasicAuthentication('Administration', function($user, $secret) {
+$auth= new Basic('Administration', function($user, $secret) {
   return 'admin' === $user && $secret->equals('secret') ? ['id' => 'admin'] : null;
 });
 
