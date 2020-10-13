@@ -2,10 +2,10 @@
 
 use unittest\Assert;
 use web\Handler;
-use web\auth\{Authentication, Flow};
+use web\auth\{SessionBased, Flow};
 use web\session\ForTesting;
 
-class AuthenticationTest {
+class SessionBasedTest {
   private $sessions, $flow;
 
   #[Before]
@@ -20,12 +20,12 @@ class AuthenticationTest {
 
   #[Test]
   public function can_create() {
-    new Authentication($this->flow, $this->sessions);
+    new SessionBased($this->flow, $this->sessions);
   }
 
   #[Test]
   public function required() {
-    $auth= new Authentication($this->flow, $this->sessions);
+    $auth= new SessionBased($this->flow, $this->sessions);
     Assert::instance(Handler::class, $auth->required(function($req, $res) {
       // ...
     }));

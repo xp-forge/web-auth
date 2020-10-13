@@ -1,7 +1,6 @@
 <?php namespace web\auth;
 
 use util\Secret;
-use web\{Filter, Filters};
 
 /**
  * HTTP basic authentication
@@ -9,7 +8,7 @@ use web\{Filter, Filters};
  * @see   https://tools.ietf.org/html/rfc2617
  * @test  xp://web.auth.unittest.BasicAuthenticationTest
  */
-class BasicAuthentication implements Filter {
+class Basic extends Authentication {
   private $realm, $login;
 
   /**
@@ -21,16 +20,6 @@ class BasicAuthentication implements Filter {
   public function __construct(string $realm, $login) {
     $this->realm= $realm;
     $this->login= cast($login, 'function(string, util.Secret): var');
-  }
-
-  /**
-   * Require authentication for a given handler
-   *
-   * @param  web.Handler|function(web.Request, web.Response): var $handler
-   * @return web.Handler
-   */
-  public function required($handler) {
-    return new Filters([$this], $handler);
   }
 
   /**

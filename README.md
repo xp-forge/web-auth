@@ -11,10 +11,24 @@ Authentication for web services. Uses sessions to store authentication informati
 
 Examples
 --------
+HTTP basic authentication:
+
+```php
+use web\auth\BasicAuthentication;
+
+$auth= new BasicAuthentication('Administration', function($user, $secret) {
+  return 'admin' === $user && $secret->equals('secret') ? ['id' => 'admin'] : null;
+});
+
+return ['/' => $auth->required(function($req, $res) {
+  $res->send('Hello @'.$req->value('user')['id'], 'text/html');
+})];
+```
+
 Authentication via Twitter:
 
 ```php
-use web\auth\Authentication;
+use web\auth\SessionBased;
 use web\auth\oauth\OAuth1Flow;
 use web\session\ForTesting;
 
@@ -22,7 +36,7 @@ $flow= new OAuth1Flow('https://api.twitter.com/oauth', [
   $credentials->named('twitter_oauth_key'),
   $credentials->named('twitter_oauth_secret'),
 ]);
-$auth= new Authentication($flow, new ForTesting(), function($session) {
+$auth= new SessionBased($flow, new ForTesting(), function($session) {
   return $session->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
 });
 
@@ -34,7 +48,7 @@ return ['/' => $auth->required(function($req, $res) {
 Authentication via GitHub:
 
 ```php
-use web\auth\Authentication;
+use web\auth\SessionBased;
 use web\auth\oauth\OAuth2Flow;
 use web\session\ForTesting;
 
@@ -43,7 +57,7 @@ $flow= new OAuth2Flow(
   'https://github.com/login/oauth/access_token',
   [$credentials->named('github_oauth_key'), $credentials->named('github_oauth_secret')],
 );
-$auth= new Authentication($flow, new ForTesting(), function($session) {
+$auth= new SessionBased($flow, new ForTesting(), function($session) {
   return $session->fetch('https://api.github.com/user')->value();
 });
 
@@ -55,12 +69,12 @@ return ['/' => $auth->required(function($req, $res) {
 Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
 
 ```php
-use web\auth\Authentication;
+use web\auth\SessionBased;
 use web\auth\cas\CasFlow;
 use web\session\ForTesting;
 
 $flow= new CasFlow('https://sso.example.com/');
-$auth= new Authentication($flow, new ForTesting());
+$auth= new SessionBased($flow, new ForTesting());
 
 return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['username'], 'text/html');
