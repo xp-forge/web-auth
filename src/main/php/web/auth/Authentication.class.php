@@ -15,6 +15,14 @@ abstract class Authentication implements Filter {
   }
 
   /**
+   * Returns whether this authentication information is present on the request
+   *
+   * @param  web.Request $req
+   * @return bool
+   */
+  public abstract function present($req);
+
+  /**
    * If present, authenticate and pass user to the given handler
    *
    * @param  web.Handler|function(web.Request, web.Response): var $handler
