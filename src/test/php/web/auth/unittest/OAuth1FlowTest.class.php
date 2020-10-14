@@ -3,7 +3,7 @@
 use lang\IllegalStateException;
 use unittest\Assert;
 use unittest\{Expect, Test, TestCase};
-use web\auth\oauth\{OAuth1Flow, Session};
+use web\auth\oauth\{OAuth1Flow, Client};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
@@ -65,7 +65,7 @@ class OAuth1FlowTest {
   }
 
   #[Test]
-  public function returns_session() {
+  public function returns_client() {
     $access= ['oauth_token' => 'ACCESS-TOKEN', 'oauth_token_secret' => 'XYZ', 'access' => true];
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
 
@@ -74,6 +74,6 @@ class OAuth1FlowTest {
     $session= (new ForTesting())->create();
     $session->register(OAuth1Flow::SESSION_KEY, $access);
 
-    Assert::instance(Session::class, $fixture->authenticate($req, $res, $session));
+    Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
 }

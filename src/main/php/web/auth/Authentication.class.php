@@ -1,23 +1,8 @@
 <?php namespace web\auth;
 
-use web\session\Sessions;
 use web\{Filter, Filters};
 
-class Authentication implements Filter {
-  private $flow, $sessions, $lookup;
-
-  /**
-   * Creates a login instance
-   *
-   * @param  web.auth.Flow $flow
-   * @param  web.session.Sessions $sessions
-   * @param  function(var): var $lookup Lookup function for users
-   */
-  public function __construct(Flow $flow, Sessions $sessions, $lookup= null) {
-    $this->flow= $flow;
-    $this->sessions= $sessions;
-    $this->lookup= $lookup;
-  }
+abstract class Authentication implements Filter {
 
   /**
    * Require authentication for a given handler
@@ -27,44 +12,5 @@ class Authentication implements Filter {
    */
   public function required($handler) {
     return new Filters([$this], $handler);
-  }
-
-  /**
-   * Executes authentication flow. On success, the user is looked up and
-   * registered in the session under a key "user".
-   *
-   * @param  web.Request $request
-   * @param  web.Response $response
-   * @param  web.filters.Invocation
-   * @return var
-   */
-  public function filter($req, $res, $invocation) {
-    try {
-      if ($session= $this->sessions->locate($req)) {
-        if ($user= $session->value('user')) {
-          $req->pass('user', $user);
-          return $invocation->proceed($req, $res);
-        }     
-      } else {
-        $session= $this->sessions->create();
-      }
-
-      if ($result= $this->flow->authenticate($req, $res, $session)) {
-
-        // Optionally map result to a user using lookup
-        if ($lookup= $this->lookup) {
-          $user= $lookup($result);
-        } else {
-          $user= $result;
-        }
-
-        // Register in session
-        $session->register('user', $user);
-        $req->pass('user', $user);
-        return $invocation->proceed($req, $res);
-      }
-    } finally {
-      $session->transmit($res);
-    }
   }
 }
