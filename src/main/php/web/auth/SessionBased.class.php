@@ -19,6 +19,16 @@ class SessionBased extends Authentication {
   }
 
   /**
+   * Returns whether this authentication information is present on the request
+   *
+   * @param  web.Request $req
+   * @return bool
+   */
+  public function present($req) {
+    return ($session= $this->sessions->locate($req)) ? null !== $session->value('user') : false;
+  }
+
+  /**
    * Executes authentication flow. On success, the user is looked up and
    * registered in the session under a key "user".
    *
