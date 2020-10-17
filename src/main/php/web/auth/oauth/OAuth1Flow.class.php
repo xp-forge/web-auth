@@ -5,7 +5,7 @@ use lang\IllegalStateException;
 use peer\http\HttpConnection;
 use web\auth\Flow;
 
-class OAuth1Flow implements Flow {
+class OAuth1Flow extends Flow {
   const SESSION_KEY = 'oauth1::flow';
 
   private $service, $signature;

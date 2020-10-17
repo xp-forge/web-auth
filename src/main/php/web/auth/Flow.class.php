@@ -1,6 +1,6 @@
 <?php namespace web\auth;
 
-interface Flow {
+abstract class Flow {
 
   /**
    * Executes authentication flow, returning the authentication result
@@ -10,5 +10,5 @@ interface Flow {
    * @param  web.session.Session $session
    * @return var
    */
-  public function authenticate($request, $response, $session);
+  public abstract function authenticate($request, $response, $session);
 }

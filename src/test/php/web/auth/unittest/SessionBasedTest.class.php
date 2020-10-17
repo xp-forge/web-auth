@@ -25,7 +25,7 @@ class SessionBasedTest {
   #[Before]
   public function setUp() {
     $this->sessions= new ForTesting();
-    $this->flow= new class() implements Flow {
+    $this->flow= new class() extends Flow {
       public function authenticate($req, $res, $invocation) {
         // ...
       }

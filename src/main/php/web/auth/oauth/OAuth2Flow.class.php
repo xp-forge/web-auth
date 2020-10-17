@@ -7,7 +7,7 @@ use util\{Random, Secret, URI};
 use web\auth\Flow;
 use web\session\Sessions;
 
-class OAuth2Flow implements Flow {
+class OAuth2Flow extends Flow {
   const SESSION_KEY = 'oauth2::flow';
 
   private $auth, $tokens, $consumer, $scopes, $rand;

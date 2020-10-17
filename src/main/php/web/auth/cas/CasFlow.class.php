@@ -10,7 +10,7 @@ use xml\dom\Document;
 use xml\parser\StreamInputSource;
 use xml\parser\XMLParser;
 
-class CasFlow implements Flow {
+class CasFlow extends Flow {
   const SESSION_KEY = 'cas::flow';
 
   /**
