@@ -1,6 +1,6 @@
 <?php namespace web\auth\unittest;
 
-use lang\IllegalStateException;
+use lang\{IllegalStateException, IllegalArgumentException};
 use unittest\Assert;
 use web\auth\Basic;
 use web\filters\Invocation;
@@ -35,6 +35,13 @@ class BasicTest {
   #[Test]
   public function can_create() {
     new Basic(self::REALM, $this->login);
+  }
+
+  #[Test, Expect(IllegalArgumentException::class)]
+  public function incorrect_parameter_types() {
+    new Basic(self::REALM, function(string $user, string $password) {
+      // ...
+    });
   }
 
   #[Test]

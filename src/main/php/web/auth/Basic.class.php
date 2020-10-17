@@ -1,5 +1,6 @@
 <?php namespace web\auth;
 
+use lang\IllegalArgumentException;
 use util\Secret;
 
 /**
@@ -9,6 +10,7 @@ use util\Secret;
  * @test  xp://web.auth.unittest.BasicAuthenticationTest
  */
 class Basic extends Authentication {
+  const LOGIN = 'function(string, util.Secret): var';
   private $realm, $login;
 
   /**
@@ -18,8 +20,12 @@ class Basic extends Authentication {
    * @param  function(string, util.Secret): var $login
    */
   public function __construct(string $realm, $login) {
+    if (!is(self::LOGIN, $login)) {
+      throw new IllegalArgumentException('Expected '.self::LOGIN.', have '.typeof($login));
+    }
+
     $this->realm= $realm;
-    $this->login= cast($login, 'function(string, util.Secret): var');
+    $this->login= $login;
   }
 
   /**
