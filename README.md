@@ -15,8 +15,9 @@ HTTP basic authentication:
 
 ```php
 use web\auth\Basic;
+use util\Secret;
 
-$auth= new Basic('Administration', function($user, $secret) {
+$auth= new Basic('Administration', function($user, Secret $secret) {
   return 'admin' === $user && $secret->equals('secret') ? ['id' => 'admin'] : null;
 });
 
