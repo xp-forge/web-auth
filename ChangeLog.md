@@ -3,7 +3,7 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
-* **Heads up**: Refactor `web.auth.Flow` to an abstract base class
+* **Heads up**: Refactored `web.auth.Flow` interface to an abstract class
   (@thekid)
 * **Heads up**: Refactored `Authentication` to be a base class of the
   two implementations, `web.auth.Basic` and `web.auth.SessionBased`
