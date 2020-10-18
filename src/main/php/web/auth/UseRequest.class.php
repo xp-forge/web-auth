@@ -1,4 +1,4 @@
-<?php namespace web\auth\cas;
+<?php namespace web\auth;
 
 /**
  * Uses request URI as service URL

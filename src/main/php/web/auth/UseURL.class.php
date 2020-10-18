@@ -1,11 +1,11 @@
-<?php namespace web\auth\cas;
+<?php namespace web\auth;
 
 use util\URI;
 
 /**
  * Uses given URI as service base URL
  */
-class ServiceURL implements URL {
+class UseURL implements URL {
   private $uri;
 
   /** @param util.URI|string $uri */
