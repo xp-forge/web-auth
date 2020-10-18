@@ -8,7 +8,7 @@ use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
 
-class OAuth1FlowTest {
+class OAuth1FlowTest extends FlowTest {
   const AUTH    = 'https://example.com/oauth';
   const ID      = 'bf396750';
   const SECRET  = '5ebe2294ecd0e0f08eab7690d2a6ee69';
@@ -18,20 +18,30 @@ class OAuth1FlowTest {
     new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
   }
 
-  #[Test]
-  public function fetches_request_token_then_redirects_to_auth() {
-    $request= ['oauth_token' => 'REQUEST-TOKEN'];
+  #[Test, Values('paths')]
+  public function fetches_request_token_then_redirects_to_auth($path) {
+    $request= ['oauth_token' => 'T'];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
       'request' => function($path, $token= null, $params= []) use($request) { return $request; }
     ]);
 
-    $req= new Request(new TestInput('GET', '/'));
-    $res= new Response(new TestOutput());
-    $session= (new ForTesting())->create();
+    Assert::equals(
+      sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode('http://localhost'.$path)),
+      $this->redirectTo($this->authenticate($fixture, $path))
+    );
+  }
 
-    $fixture->authenticate($req, $res, $session);
+  #[Test, Values('fragments')]
+  public function fetches_request_token_then_redirects_to_auth_with_fragment_in_special_parameter($fragment) {
+    $request= ['oauth_token' => 'T'];
+    $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
+      'request' => function($path, $token= null, $params= []) use($request) { return $request; }
+    ]);
 
-    Assert::equals(self::AUTH.'/authenticate?oauth_token=REQUEST-TOKEN', $res->headers()['Location']);
+    Assert::equals(
+      sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode('http://localhost/?_='.urlencode($fragment))),
+      $this->redirectTo($this->authenticate($fixture, '/#'.$fragment))
+    );
   }
 
   #[Test]
@@ -40,14 +50,10 @@ class OAuth1FlowTest {
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
       'request' => function($path, $token= null, $params= []) use($access) { return $access; }
     ]);
-
-    $req= new Request(new TestInput('GET', '/?oauth_token=REQUEST-TOKEN&oauth_verifier=ABC'));
-    $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
     $session->register(OAuth1Flow::SESSION_KEY, ['oauth_token' => 'REQUEST-TOKEN']);
 
-    $fixture->authenticate($req, $res, $session);
-
+    $res= $this->authenticate($fixture, '/?oauth_token=REQUEST-TOKEN&oauth_verifier=ABC', $session);
     Assert::equals('http://localhost/', $res->headers()['Location']);
     Assert::equals($access, $session->value(OAuth1Flow::SESSION_KEY));
   }
@@ -55,13 +61,10 @@ class OAuth1FlowTest {
   #[Test, Expect(IllegalStateException::class)]
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET]);
-
-    $req= new Request(new TestInput('GET', '/?oauth_token=MISMATCHED-TOKEN&oauth_verifier=ABC'));
-    $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
     $session->register(OAuth1Flow::SESSION_KEY, ['oauth_token' => 'REQUEST-TOKEN']);
 
-    $fixture->authenticate($req, $res, $session);
+    $this->authenticate($fixture, '/?oauth_token=MISMATCHED-TOKEN&oauth_verifier=ABC', $session);
   }
 
   #[Test]

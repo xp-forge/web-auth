@@ -4,30 +4,16 @@ use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
 use unittest\Assert;
 use unittest\{Expect, Test, TestCase, Values};
-use web\auth\cas\{CasFlow, ServiceURL, UseRequest};
+use web\auth\cas\CasFlow;
+use web\auth\{UseURL, UseRequest};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Error, Request, Response};
 
-class CasFlowTest {
+class CasFlowTest extends FlowTest {
   const SSO     = 'https://example.com/sso';
   const SERVICE = 'https://service.example.com';
   const TICKET  = 'ST-1856339-aA5Yuvrxzpv8Tau1cYQ7';
-
-  /** @return iterable */
-  private function paths() {
-    yield ['/'];
-    yield ['/home'];
-    yield ['/~test'];
-    yield ['/?a=b'];
-    yield ['/?a=b&c=d'];
-  }
-
-  /** @return iterable */
-  private function fragments() {
-    yield ['top'];
-    yield ['/users/~test'];
-  }
 
   /**
    * Asserts a given response redirects to a given SSO login
@@ -37,23 +23,7 @@ class CasFlowTest {
    * @throws unittest.AssertionFailedError
    */
   private function assertLoginWith($service, $res) {
-    preg_match('/<meta http-equiv="refresh" content="1; URL=([^"]+)">/', $res->output()->bytes(), $m);
-    Assert::equals(self::SSO.'/login?service='.urlencode($service), $m[1]);
-  }
-
-  /**
-   * Calls authenticate method, returning response
-   * 
-   * @param  web.auth.cas.CasLogin $fixture
-   * @param  string $path
-   * @param  web.session.ISession $session
-   * @return web.Response
-   */
-  private function authenticate($fixture, $path= '/', $session= null) {
-    $req= new Request(new TestInput('GET', $path));
-    $res= new Response(new TestOutput());
-    $fixture->authenticate($req, $res, $session ?: (new ForTesting())->create());
-    return $res;
+    Assert::equals(self::SSO.'/login?service='.urlencode($service), $this->redirectTo($res));
   }
 
   /**
@@ -87,7 +57,7 @@ class CasFlowTest {
   public function redirects_to_sso_using_request($path) {
     $this->assertLoginWith(
       'http://localhost'.$path,
-      $this->authenticate(new CasFlow(self::SSO, new UseRequest()), $path)
+      $this->authenticate((new CasFlow(self::SSO))->target(new UseRequest()), $path)
     );
   }
 
@@ -95,7 +65,7 @@ class CasFlowTest {
   public function redirects_to_sso_given_service($path) {
     $this->assertLoginWith(
       self::SERVICE.$path,
-      $this->authenticate(new CasFlow(self::SSO, new ServiceURL(self::SERVICE)), $path)
+      $this->authenticate((new CasFlow(self::SSO))->target(new UseURL(self::SERVICE)), $path)
     );
   }
 
@@ -111,7 +81,7 @@ class CasFlowTest {
   public function redirects_to_sso_with_fragment_in_special_parameter_using_request($fragment) {
     $this->assertLoginWith(
       'http://localhost/?_='.urlencode($fragment),
-      $this->authenticate(new CasFlow(self::SSO, new UseRequest()), '/#'.$fragment)
+      $this->authenticate((new CasFlow(self::SSO))->target(new UseRequest()), '/#'.$fragment)
     );
   }
 
@@ -119,7 +89,7 @@ class CasFlowTest {
   public function redirects_to_sso_with_fragment_in_special_parameter_given_service($fragment) {
     $this->assertLoginWith(
       self::SERVICE.'/?_='.urlencode($fragment),
-      $this->authenticate(new CasFlow(self::SSO, new ServiceURL(self::SERVICE)), '/#'.$fragment)
+      $this->authenticate((new CasFlow(self::SSO))->target(new UseURL(self::SERVICE)), '/#'.$fragment)
     );
   }
 
