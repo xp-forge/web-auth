@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Added support for redirecting to URLs with fragments (`/#/users/123`)
+  for OAuth1 and OAuth2; previously only CAS flows supported these.
+  (@thekid)
 * **Heads up**: Refactored `web.auth.Flow` interface to an abstract class
   (@thekid)
 * **Heads up**: Refactored `Authentication` to be a base class of the
