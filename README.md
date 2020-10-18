@@ -90,5 +90,5 @@ By default, the flow instances use the request URI to determine where the servic
 use web\auth\UseURL;
 use web\auth\cas\CasFlow;
 
-$flow= (new CasFlow('https://sso.example.com/'))->target(new UseURL('https://service.example.com'));
+$flow= (new CasFlow('https://sso.example.com/'))->target(new UseURL('https://service.example.com/'));
 ```
