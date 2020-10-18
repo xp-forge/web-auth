@@ -21,14 +21,26 @@ class OAuth1Flow extends Flow {
     $this->signature= new Signature($consumer instanceof Token ? $consumer : new Token(...$consumer));
   }
 
+  /**
+   * Obtain a request token
+   *
+   * @param  string $path
+   * @param  ?string $token
+   * @param  [:var] $params
+   * @return var
+   * @throws lang.IllegalStateException if fetching fails
+   */
   protected function request($path, $token= null, $params= []) {
     $url= $this->service.$path;
     $auth= $this->signature->header('POST', $url, $token ? $params + ['oauth_token' => $token] : $params);
 
-    $c= new HttpConnection($url);
-    $r= $c->post($params, ['Authorization' => $auth, 'User-Agent' => 'XP/OAuth1']);
-    $body= Streams::readAll($r->in());
+    $r= (new HttpConnection($url))->post($params, [
+      'Authorization' => $auth,
+      'User-Agent'    => 'XP/OAuth1',
+      'Accept'        => 'application/json;q=1.0, */*;q=0.8'
+    ]);
 
+    $body= Streams::readAll($r->in());
     if (200 === $r->statusCode()) {
       parse_str($body, $result);
       return $result;
@@ -54,27 +66,35 @@ class OAuth1Flow extends Flow {
       return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
+    $uri= $this->url(true)->resolve($request);
     $server= $request->param('oauth_token');
     if (null === $state || null === $server) {
+      $service= $this->service($uri);
 
       // Start authenticaton flow by obtaining request token and store for later use
-      $token= $this->request('/request_token');
+      $token= $this->request('/request_token', null, ['oauth_callback' => $service]);
       $session->register(self::SESSION_KEY, $token);
+      $session->transmit($response);
 
-      // Redirect user to authentication
-      $response->answer(302);
-      $response->header('Location', $this->service.'/authenticate?oauth_token='.urlencode($token['oauth_token']));
-      return;
+      $this->login($response, sprintf(
+        '%s/authenticate?oauth_token=%s&oauth_callback=%s',
+        $this->service,
+        urlencode($token['oauth_token']),
+        urlencode($service)
+      ));
+      return null;
     } else if ($state['oauth_token'] === $server) {
 
       // Back from authentication redirect, upgrade request token to access token
       $access= $this->request('/access_token', $state['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
       $session->register(self::SESSION_KEY, $access + ['access' => true]);
+      $session->transmit($response);
 
-      // Redirect back, removing GET parameters
-      $response->answer(302);
-      $response->header('Location', $request->uri()->using()->param('oauth_token', null)->param('oauth_verifier', null)->create());
-      return;
+      // Redirect to self, getting rid of OAuth request parameters
+      $params= $request->params();
+      unset($params['oauth_token'], $params['oauth_verifier']);
+      $this->finalize($response, $uri->using()->params($params)->create());
+      return null;
     }
 
     throw new IllegalStateException('Flow error, request token '.$state['oauth_token'].' != server token '.$server);

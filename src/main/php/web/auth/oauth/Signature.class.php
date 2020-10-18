@@ -31,7 +31,7 @@ class Signature {
 
     $base= '';
     foreach ($parameters as $name => $value) {
-      $base.= '%26'.$name.'%3D'.rawurlencode($value);
+      $base.= '%26'.$name.'%3D'.rawurlencode(rawurlencode($value));
     }
     $base= $method.'&'.rawurlencode($url).'&'.substr($base, 3);
     $signature= base64_encode(hash_hmac('sha1', $base, $key, true));
@@ -40,7 +40,7 @@ class Signature {
     foreach ($parameters + ['oauth_signature' => $signature] as $key => $value) {
       $header.= ', '.$key.='="'.rawurlencode($value).'"';
     }
-    
+
     return 'OAuth '.substr($header, 2);
   }
 }

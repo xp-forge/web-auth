@@ -28,6 +28,9 @@ class OAuth2Flow extends Flow {
     $this->rand= new Random();
   }
 
+  /** @return string[] */
+  public function scopes() { return $this->scopes; }
+
   /**
    * Gets a token
    *
@@ -73,21 +76,23 @@ class OAuth2Flow extends Flow {
     }
 
     // Start authorization flow to acquire an access token
+    $uri= $this->url(true)->resolve($request);
     $server= $request->param('state');
     if (null === $state || null === $server) {
       $state= bin2hex($this->rand->bytes(16));
       $session->register(self::SESSION_KEY, $state);
+      $session->transmit($response);
 
       // Redirect the user to the authorization page
       $target= $this->auth->using()->params([
         'response_type' => 'code',
         'client_id'     => $this->consumer->key()->reveal(),
-        'redirect_uri'  => $request->uri(),
         'scope'         => implode(' ', $this->scopes),
         'state'         => $state,
+        'redirect_uri'  => $this->service($uri),
       ]);
-      $response->answer(302);
-      $response->header('Location', $target->create());
+
+      $this->login($response, $target->create());
       return null;
     } else if ($server === $state) {
 
@@ -96,17 +101,17 @@ class OAuth2Flow extends Flow {
         'grant_type'    => 'authorization_code',
         'client_id'     => $this->consumer->key()->reveal(),
         'client_secret' => $this->consumer->secret()->reveal(),
-        'redirect_uri'  => $request->uri()->using()->params([])->create(),
         'code'          => $request->param('code'),
         'state'         => $state,
+        'redirect_uri'  => $uri->using()->params([])->create(),
       ]);
       $session->register(self::SESSION_KEY, $token);
+      $session->transmit($response);
 
-      // Redirect to self, getting rid of "state" and "code" request parameters
+      // Redirect to self, getting rid of OAuth request parameters
       $params= $request->params();
       unset($params['state'], $params['code'], $params['session_state']);
-      $response->answer(302);
-      $response->header('Location', $request->uri()->using()->params($params)->create());
+      $this->finalize($response, $uri->using()->params($params)->create());
       return null;
     }
 
