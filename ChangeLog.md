@@ -3,6 +3,8 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.0.0 / 2020-10-18
+
 * Added support for redirecting to URLs with fragments (`/#/users/123`)
   for OAuth1 and OAuth2; previously only CAS flows supported these.
   (@thekid)
