@@ -81,3 +81,14 @@ return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['username'], 'text/html');
 })];
 ```
+
+Target URLs
+-----------
+By default, the flow instances use the request URI to determine where the service is running. Behind a proxy, this is most probably not the user-facing URI. To change this behavior, use the `target()` method and pass a `UseURL` instance as follows:
+
+```php
+use web\auth\UseURL;
+use web\auth\cas\CasFlow;
+
+$flow= (new CasFlow('https://sso.example.com/'))->target(new UseURL('https://service.example.com'));
+```
