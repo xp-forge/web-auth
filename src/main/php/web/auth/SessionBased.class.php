@@ -38,32 +38,28 @@ class SessionBased extends Authentication {
    * @return var
    */
   public function filter($req, $res, $invocation) {
-    try {
-      if ($session= $this->sessions->locate($req)) {
-        if ($user= $session->value('user')) {
-          $req->pass('user', $user);
-          return $invocation->proceed($req, $res);
-        }     
-      } else {
-        $session= $this->sessions->create();
-      }
-
-      if ($result= $this->flow->authenticate($req, $res, $session)) {
-
-        // Optionally map result to a user using lookup
-        if ($lookup= $this->lookup) {
-          $user= $lookup($result);
-        } else {
-          $user= $result;
-        }
-
-        // Register in session
-        $session->register('user', $user);
+    if ($session= $this->sessions->locate($req)) {
+      if ($user= $session->value('user')) {
         $req->pass('user', $user);
         return $invocation->proceed($req, $res);
       }
-    } finally {
-      $session->transmit($res);
+    } else {
+      $session= $this->sessions->create();
+    }
+
+    if ($result= $this->flow->authenticate($req, $res, $session)) {
+
+      // Optionally map result to a user using lookup
+      if ($lookup= $this->lookup) {
+        $user= $lookup($result);
+      } else {
+        $user= $result;
+      }
+
+      // Register in session
+      $session->register('user', $user);
+      $req->pass('user', $user);
+      return $invocation->proceed($req, $res);
     }
   }
 }
