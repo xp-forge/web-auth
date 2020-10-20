@@ -51,11 +51,11 @@ class OAuth2Flow extends Flow {
 
     $type= $r->header('Content-Type')[0];
     if (strstr($type, 'application/json')) {
-      $token= json_decode($body, true);
+      return json_decode($body, true);
     } else {
       parse_str($body, $token);
+      return $token;
     }
-    return $token;
   }
 
   /**
