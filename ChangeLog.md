@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.0.1 / 2020-12-23
+
+* Fixed `ISession::transmit()` not being called after authentication
+  (@thekid)
+
 ## 2.0.0 / 2020-10-18
 
 * Added support for redirecting to URLs with fragments (`/#/users/123`)

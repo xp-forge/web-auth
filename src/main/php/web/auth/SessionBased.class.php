@@ -56,10 +56,10 @@ class SessionBased extends Authentication {
         $user= $result;
       }
 
-      // Register in session
+      // Register in session, then continue with invocation
       $session->register('user', $user);
-      $req->pass('user', $user);
-      return $invocation->proceed($req, $res);
+      $session->transmit($res);
+      return $invocation->proceed($req->pass('user', $user), $res);
     }
   }
 }
