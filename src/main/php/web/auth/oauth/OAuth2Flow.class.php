@@ -53,12 +53,10 @@ class OAuth2Flow extends Flow {
    * @throws lang.IllegalStateException
    */
   protected function token($payload) {
-    // \util\cmd\Console::writeLine('>>> ', $payload);
     $c= new HttpConnection($this->tokens);
     $r= $c->post($payload, ['Accept' => 'application/x-www-form-urlencoded, application/json', 'User-Agent' => 'XP/OAuth2']);
-    $body= Streams::readAll($r->in());
-    // \util\cmd\Console::writeLine('<<< ', $body);
 
+    $body= Streams::readAll($r->in());
     if (200 !== $r->statusCode()) {
       throw new IllegalStateException('Cannot get access token (#'.$r->statusCode().'): '.$body);
     }
