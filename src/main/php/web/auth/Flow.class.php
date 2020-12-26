@@ -1,9 +1,11 @@
 <?php namespace web\auth;
 
+use util\URI;
+
 abstract class Flow {
   const FRAGMENT = '_';
 
-  private $url;
+  private $url= null;
 
   /**
    * Targets a given URL
@@ -87,16 +89,17 @@ abstract class Flow {
    * Final redirect, replacing `_` parameter back with fragment if present
    *
    * @param  web.Response $response
-   * @param  util.URI $service
+   * @param  string|util.URI $target
    * @return void
    */
-  protected function finalize($response, $service) {
-    if ($fragment= $service->param(self::FRAGMENT)) {
-      $service= $service->using()->param(self::FRAGMENT, null)->fragment($fragment, false)->create();
-    }
+  protected function finalize($response, $target) {
+    $uri= $target instanceof URI ? $target : new URI($target);
 
     $response->answer(302);
-    $response->header('Location', $service);
+    $response->header('Location', ($fragment= $uri->param(self::FRAGMENT))
+      ? $uri->using()->param(self::FRAGMENT, null)->fragment($fragment, false)->create()
+      : $uri
+    );
   }
 
   /**
