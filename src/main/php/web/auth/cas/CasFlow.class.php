@@ -37,6 +37,44 @@ class CasFlow extends Flow {
   }
 
   /**
+   * Send redirect using JavaScript to capture URL fragments. This is so that
+   * sites using URLs like `/#/users/123` will not redirect to "/" when requiring
+   * authentication. Uses `_` as special parameter name. Include meta refresh in
+   * head as fallback for when JavaScript is disabled, in which case we lose the
+   * fragment, but still offer a degraded service.
+   *
+   * @param  web.Response $response
+   * @param  string|util.URI $target
+   * @return void
+   */
+  private function redirect($response, $target) {
+    $redirect= sprintf('<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirect</title>
+          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
+        </head>
+        <body>
+          <script type="text/javascript">
+            var hash = document.location.hash.substring(1);
+            if (hash) {
+              document.location.replace("%1$s" + encodeURIComponent(
+                (document.location.search ? "&%2$s=" : "?%2$s=") +
+                encodeURIComponent(hash)
+              ));
+            } else {
+              document.location.replace("%1$s");
+            }
+          </script>
+        </body>
+      </html>',
+      $target,
+      self::FRAGMENT
+    );
+    $response->send($redirect, 'text/html');
+  }
+
+  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
@@ -52,7 +90,7 @@ class CasFlow extends Flow {
     // then finalize this flow by relocating to self without ticket parameter.
     $uri= $this->url(true)->resolve($request);
     if (null === ($ticket= $request->param('ticket'))) {
-      $this->login($response, $this->sso.'/login?service='.urlencode($this->service($uri)));
+      $this->redirect($response, $this->sso.'/login?service='.urlencode($this->service($uri)));
       return null;
     }
 

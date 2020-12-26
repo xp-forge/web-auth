@@ -71,6 +71,44 @@ class OAuth2Flow extends Flow {
   }
 
   /**
+   * If a URL fragment is present, append it to the state parameter, which
+   * is passed as the last parameter to the authentication service. This is
+   * necessary as otherwise the fragment would be lost, resulting in the
+   * user arriving at the site she expected. Include meta refresh in head
+   * as fallback for when JavaScript is disabled, in which case we lose the
+   * fragment, but still offer a degraded service.
+   *
+   * @param  web.Response $response
+   * @param  string $target Authentication URI
+   * @return void
+   */
+  private function redirect($response, $target) {
+    $redirect= sprintf('<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirect</title>
+          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
+        </head>
+        <body>
+          <script type="text/javascript">
+            var target = "%1$s";
+            var hash = document.location.hash.substring(1);
+
+            if (hash) {
+              document.location.replace(target + "%2$s" + encodeURIComponent(hash));
+            } else {
+              document.location.replace(target);
+            }
+          </script>
+        </body>
+      </html>',
+      $target,
+      self::FRAGMENT
+    );
+    $response->send($redirect, 'text/html');
+  }
+
+  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
@@ -103,15 +141,14 @@ class OAuth2Flow extends Flow {
         'client_id'     => $this->consumer->key()->reveal(),
         'scope'         => implode(' ', $this->scopes),
         'redirect_uri'  => $callback,
-        'state'         => $state,
+        'state'         => $state
       ]);
-
-      $this->login($response, $target->create());
+      $this->redirect($response, $target->create());
       return null;
     }
 
     // Continue authorization flow
-    $state= explode('?', $server);
+    $state= explode(self::FRAGMENT, $server);
     if ($state[0] === $stored['state']) {
 
       // Exchange the auth code for an access token
@@ -121,16 +158,13 @@ class OAuth2Flow extends Flow {
         'client_secret' => $this->consumer->secret()->reveal(),
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
-        'state'         => $stored['state'],
+        'state'         => $stored['state']
       ]);
       $session->register(self::SESSION_KEY, $token);
       $session->transmit($response);
 
-      // Redirect to self, using encoded fragment parameter if present
-      $this->finalize($response, $stored['target'].(isset($state[1])
-        ? '#'.urldecode(substr($state[1], strlen(self::FRAGMENT) + 1))
-        : ''
-      ));
+      // Redirect to self, using encoded fragment if present
+      $this->finalize($response, $stored['target'].(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
       return null;
     }
 

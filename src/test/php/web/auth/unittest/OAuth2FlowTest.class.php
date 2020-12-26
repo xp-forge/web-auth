@@ -158,7 +158,7 @@ class OAuth2FlowTest extends FlowTest {
   #[Test]
   public function gets_access_token_and_redirects_to_self() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
-    $state= 'SHARED_STATE';
+    $state= 'SHAREDSTATE';
     $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK], [
       'token' => function($payload) use($token) { return $token; }
     ]);
@@ -173,14 +173,14 @@ class OAuth2FlowTest extends FlowTest {
   #[Test, Values('fragments')]
   public function gets_access_token_and_redirects_to_self_with_fragment($fragment) {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
-    $state= 'SHARED_STATE';
+    $state= 'SHAREDSTATE';
     $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK], [
       'token' => function($payload) use($token) { return $token; }
     ]);
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
 
-    $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state.urlencode('?_='.urlencode($fragment)), $session);
+    $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state.OAuth2Flow::FRAGMENT.urlencode($fragment), $session);
     Assert::equals(self::SERVICE.'#'.$fragment, $res->headers()['Location']);
     Assert::equals($token, $session->value(OAuth2Flow::SESSION_KEY));
   }
@@ -189,9 +189,9 @@ class OAuth2FlowTest extends FlowTest {
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register(OAuth2Flow::SESSION_KEY, ['state' => 'CLIENT_STATE', 'target' => self::SERVICE]);
+    $session->register(OAuth2Flow::SESSION_KEY, ['state' => 'CLIENTSTATE', 'target' => self::SERVICE]);
 
-    $this->authenticate($fixture, '/?state=SERVER_STATE&code=SERVER_CODE', $session);
+    $this->authenticate($fixture, '/?state=SERVERSTATE&code=SERVER_CODE', $session);
   }
 
   #[Test]

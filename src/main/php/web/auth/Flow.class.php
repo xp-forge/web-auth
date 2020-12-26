@@ -45,47 +45,6 @@ abstract class Flow {
   }
 
   /**
-   * Send redirect using JavaScript to capture URL fragments. This is so that
-   * sites using URLs like `/#/users/123` will not redirect to "/" when requiring
-   * authentication. Uses `_` as special parameter name.
-   *
-   * @param  web.Response $response
-   * @param  string|util.URI $target
-   * @return void
-   */
-  protected function login($response, $target) {
-
-    // Include meta refresh in body as fallback for when JavaScript is disabled,
-    // in which case we lose the fragment, but still offer a degraded service.
-    // Do not move this to HTTP headers to ensure the body has been parsed, and
-    // the JavaScript executed!
-    $redirect= sprintf('<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Redirect</title>
-          <meta http-equiv="refresh" content="1; URL=%1$s">
-        </head>
-        <body>
-          <script type="text/javascript">
-            var hash = document.location.hash.substring(1);
-            if (hash) {
-              document.location.replace("%1$s" + encodeURIComponent(
-                (document.location.search ? "&%2$s=" : "?%2$s=") +
-                encodeURIComponent(hash)
-              ));
-            } else {
-              document.location.replace("%1$s");
-            }
-          </script>
-        </body>
-      </html>',
-      $target,
-      self::FRAGMENT
-    );
-    $response->send($redirect, 'text/html');
-  }
-
-  /**
    * Final redirect, replacing `_` parameter back with fragment if present
    *
    * @param  web.Response $response

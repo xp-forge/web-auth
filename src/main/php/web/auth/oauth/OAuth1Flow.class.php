@@ -66,7 +66,9 @@ class OAuth1Flow extends Flow {
    * If a URL fragment is present, call ourselves to capture it inside the
    * session; otherwise redirect the OAuth authentication service directly.
    * This is necessary as otherwise the fragment would be lost, resulting
-   * in the user arriving at the site she expected.
+   * in the user arriving at the site she expected. Include meta refresh in
+   * head as fallback for when JavaScript is disabled, in which case we lose
+   * the fragment, but still offer a degraded service.
    *
    * @param  web.Response $response
    * @param  string $self Our own URI
@@ -78,7 +80,7 @@ class OAuth1Flow extends Flow {
       <html>
         <head>
           <title>Redirect</title>
-          <noscript><meta http-equiv="refresh" content="1; URL=%1$s"></noscript>
+          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
         </head>
         <body>
           <script type="text/javascript">

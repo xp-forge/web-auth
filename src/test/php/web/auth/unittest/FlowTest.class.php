@@ -46,7 +46,7 @@ abstract class FlowTest {
    */
   protected function redirectTo($res) {
     $bytes= $res->output()->bytes();
-    if (preg_match('/<meta http-equiv="refresh" content="1; URL=([^"]+)">/', $bytes, $m)) {
+    if (preg_match('/<meta http-equiv="refresh" content="[0-9]+; URL=([^"]+)">/', $bytes, $m)) {
       return $m[1];
     }
     throw new AssertionFailedError('No redirect URL in response `'.$bytes.'`');
