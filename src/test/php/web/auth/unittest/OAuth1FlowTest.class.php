@@ -86,6 +86,34 @@ class OAuth1FlowTest extends FlowTest {
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
 
+  #[Test, Values('fragments')]
+  public function appends_fragment($fragment) {
+    $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/?'.OAuth1Flow::FRAGMENT.'='.urlencode($fragment)));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth1Flow::SESSION_KEY, ['target' => 'http://localhost/']);
+
+    $fixture->authenticate($req, $res, $session);
+
+    Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+  }
+
+  #[Test, Values('fragments')]
+  public function replaces_fragment($fragment) {
+    $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/?'.OAuth1Flow::FRAGMENT.'='.urlencode($fragment)));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth1Flow::SESSION_KEY, ['target' => 'http://localhost/#original']);
+
+    $fixture->authenticate($req, $res, $session);
+
+    Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+  }
+
   /** @deprecated */
   #[Test, Values('paths')]
   public function deprecated_usage_without_callback_uri($path) {

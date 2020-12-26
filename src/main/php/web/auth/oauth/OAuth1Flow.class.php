@@ -60,6 +60,46 @@ class OAuth1Flow extends Flow {
   }
 
   /**
+   * If a URL fragment is present, call ourselves to capture it inside the
+   * session; otherwise redirect the OAuth authentication service directly.
+   * This is necessary as otherwise the fragment would be lost, resulting
+   * in the user arriving at the site she expected.
+   *
+   * @param  web.Response $response
+   * @param  string $self Our own URI
+   * @param  string $target Authentication URI
+   * @return void
+   */
+  private function redirect($response, $self, $target) {
+    $redirect= sprintf('<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirect</title>
+          <noscript><meta http-equiv="refresh" content="1; URL=%1$s"></noscript>
+        </head>
+        <body>
+          <script type="text/javascript">
+            var target = "%1$s";
+            var hash = document.location.hash.substring(1);
+
+            if (hash) {
+              var s = document.createElement("script");
+              s.src = "%2$s?%3$s=" + encodeURIComponent(hash) + "&" + Math.random();
+              document.body.appendChild(s);
+            } else {
+              document.location.replace(target);
+            }
+          </script>
+        </body>
+      </html>',
+      $target,
+      $self,
+      self::FRAGMENT
+    );
+    $response->send($redirect, 'text/html');
+  }
+
+  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
@@ -76,6 +116,20 @@ class OAuth1Flow extends Flow {
       return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
+    // Store fragment, then make redirection continue (see redirect() above)
+    if ($fragment= $request->param(self::FRAGMENT)) {
+      if (false === ($p= strpos($state['target'], '#'))) {
+        $state['target'].= '#'.$fragment;
+      } else {
+        $state['target']= substr($state['target'], 0, $p + 1).$fragment;
+      }
+
+      $session->register(self::SESSION_KEY, $state);
+      $session->transmit($response);
+      $response->send('document.location.replace(target)', 'text/javascript');
+      return null;
+    }
+
     $uri= $this->url(true)->resolve($request);
     $server= $request->param('oauth_token');
     if (null === $state || null === $server) {
@@ -86,7 +140,7 @@ class OAuth1Flow extends Flow {
       $session->register(self::SESSION_KEY, $token + ['target' => (string)$uri]);
       $session->transmit($response);
 
-      $this->login($response, sprintf(
+      $this->redirect($response, $uri, sprintf(
         '%s/authenticate?oauth_token=%s&oauth_callback=%s',
         $this->service,
         urlencode($token['oauth_token']),
