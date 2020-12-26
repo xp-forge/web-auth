@@ -71,44 +71,6 @@ class OAuth2Flow extends Flow {
   }
 
   /**
-   * If a URL fragment is present, append it to the state parameter, which
-   * is passed as the last parameter to the authentication service. This is
-   * necessary as otherwise the fragment would be lost, resulting in the
-   * user arriving at the site she expected. Include meta refresh in head
-   * as fallback for when JavaScript is disabled, in which case we lose the
-   * fragment, but still offer a degraded service.
-   *
-   * @param  web.Response $response
-   * @param  string $target Authentication URI
-   * @return void
-   */
-  private function redirect($response, $target) {
-    $redirect= sprintf('<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Redirect</title>
-          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
-        </head>
-        <body>
-          <script type="text/javascript">
-            var target = "%1$s";
-            var hash = document.location.hash.substring(1);
-
-            if (hash) {
-              document.location.replace(target + "%2$s" + encodeURIComponent(hash));
-            } else {
-              document.location.replace(target);
-            }
-          </script>
-        </body>
-      </html>',
-      $target,
-      self::FRAGMENT
-    );
-    $response->send($redirect, 'text/html');
-  }
-
-  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
@@ -136,14 +98,29 @@ class OAuth2Flow extends Flow {
       $session->transmit($response);
 
       // Redirect the user to the authorization page
-      $target= $this->auth->using()->params([
+      $params= [
         'response_type' => 'code',
         'client_id'     => $this->consumer->key()->reveal(),
         'scope'         => implode(' ', $this->scopes),
         'redirect_uri'  => $callback,
         'state'         => $state
-      ]);
-      $this->redirect($response, $target->create());
+      ];
+      $target= $this->auth->using()->params($params)->create();
+
+      // If a URL fragment is present, append it to the state parameter, which
+      // is passed as the last parameter to the authentication service.
+      $this->redirect($response, $target, sprintf('
+        var target = "%1$s";
+        var hash = document.location.hash.substring(1);
+
+        if (hash) {
+          document.location.replace(target + "%2$s" + encodeURIComponent(hash));
+        } else {
+          document.location.replace(target);
+        }',
+        $target,
+        self::FRAGMENT
+      ));
       return null;
     }
 

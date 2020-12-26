@@ -45,6 +45,36 @@ abstract class Flow {
   }
 
   /**
+   * Perfoms redirection by rendering an HTML page with a given script on it. This
+   * is so that sites using URLs like `/#/users/123` will not redirect to "/" when
+   * requiring authentication.
+   *
+   * Includes a meta refresh in head as fallback for when JavaScript is disabled,
+   * in which case we lose the fragment, but still offer a degraded service.
+   *
+   * @param  web.Response $response
+   * @param  string|util.URI $target
+   * @param  string $script
+   * @return void
+   */
+  protected function redirect($response, $target, $script) {
+    $redirect= sprintf('<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirect</title>
+          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
+        </head>
+        <body>
+          <script type="text/javascript">%2$s</script>
+        </body>
+      </html>',
+      $target,
+      $script
+    );
+    $response->send($redirect, 'text/html');
+  }
+
+  /**
    * Final redirect, replacing `_` parameter back with fragment if present
    *
    * @param  web.Response $response

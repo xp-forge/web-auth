@@ -63,48 +63,6 @@ class OAuth1Flow extends Flow {
   }
 
   /**
-   * If a URL fragment is present, call ourselves to capture it inside the
-   * session; otherwise redirect the OAuth authentication service directly.
-   * This is necessary as otherwise the fragment would be lost, resulting
-   * in the user arriving at the site she expected. Include meta refresh in
-   * head as fallback for when JavaScript is disabled, in which case we lose
-   * the fragment, but still offer a degraded service.
-   *
-   * @param  web.Response $response
-   * @param  string $self Our own URI
-   * @param  string $target Authentication URI
-   * @return void
-   */
-  private function redirect($response, $self, $target) {
-    $redirect= sprintf('<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Redirect</title>
-          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
-        </head>
-        <body>
-          <script type="text/javascript">
-            var target = "%1$s";
-            var hash = document.location.hash.substring(1);
-
-            if (hash) {
-              var s = document.createElement("script");
-              s.src = "%2$s?%3$s=" + encodeURIComponent(hash) + "&" + Math.random();
-              document.body.appendChild(s);
-            } else {
-              document.location.replace(target);
-            }
-          </script>
-        </body>
-      </html>',
-      $target,
-      $self,
-      self::FRAGMENT
-    );
-    $response->send($redirect, 'text/html');
-  }
-
-  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
@@ -136,20 +94,39 @@ class OAuth1Flow extends Flow {
     }
 
     $uri= $this->url(true)->resolve($request);
+    $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
+
+    // Start authenticaton flow by obtaining request token and store for later use
     $server= $request->param('oauth_token');
     if (null === $state || null === $server) {
-      $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
-
-      // Start authenticaton flow by obtaining request token and store for later use
       $token= $this->request('/request_token', null, ['oauth_callback' => $callback]);
       $session->register(self::SESSION_KEY, $token + ['target' => (string)$uri]);
       $session->transmit($response);
 
-      $this->redirect($response, $uri, sprintf(
+      // Redirect the user to the authorization page
+      $target= sprintf(
         '%s/authenticate?oauth_token=%s&oauth_callback=%s',
         $this->service,
         urlencode($token['oauth_token']),
         urlencode($callback)
+      );
+
+      // If a URL fragment is present, call ourselves to capture it inside the
+      // session; otherwise redirect the OAuth authentication service directly.
+      $this->redirect($response, $target, sprintf('
+        var target = "%1$s";
+        var hash = document.location.hash.substring(1);
+
+        if (hash) {
+          var s = document.createElement("script");
+          s.src = "%2$s?%3$s=" + encodeURIComponent(hash) + "&" + Math.random();
+          document.body.appendChild(s);
+        } else {
+          document.location.replace(target);
+        }',
+        $target,
+        $uri,
+        self::FRAGMENT
       ));
       return null;
     } else if ($state['oauth_token'] === $server) {
