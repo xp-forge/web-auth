@@ -3,22 +3,32 @@
 use io\streams\Streams;
 use lang\IllegalStateException;
 use peer\http\HttpConnection;
+use util\URI;
 use web\auth\Flow;
 
 class OAuth1Flow extends Flow {
   const SESSION_KEY = 'oauth1::flow';
 
-  private $service, $signature;
+  private $service, $signature, $callback;
 
   /**
    * Creates a new OAuth 1 flow
    *
    * @param  string|util.URI $service
    * @param  web.auth.oauth.Token|string[]|util.Secret[] $consumer
+   * @param  string|util.URI $callback
    */
-  public function __construct($service, $consumer) {
+  public function __construct($service, $consumer, $callback= null) {
     $this->service= rtrim($service, '/');
     $this->signature= new Signature($consumer instanceof Token ? $consumer : new Token(...$consumer));
+
+    // BC: Support deprecated constructor signature without callback
+    if (null === $callback) {
+      trigger_error('Missing parameter $callback', E_USER_DEPRECATED);
+      $this->callback= null;
+    } else {
+      $this->callback= $callback instanceof URI ? $callback : new URI($callback);
+    }
   }
 
   /**
@@ -69,18 +79,18 @@ class OAuth1Flow extends Flow {
     $uri= $this->url(true)->resolve($request);
     $server= $request->param('oauth_token');
     if (null === $state || null === $server) {
-      $service= $this->service($uri);
+      $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
 
       // Start authenticaton flow by obtaining request token and store for later use
-      $token= $this->request('/request_token', null, ['oauth_callback' => $service]);
-      $session->register(self::SESSION_KEY, $token);
+      $token= $this->request('/request_token', null, ['oauth_callback' => $callback]);
+      $session->register(self::SESSION_KEY, $token + ['target' => (string)$uri]);
       $session->transmit($response);
 
       $this->login($response, sprintf(
         '%s/authenticate?oauth_token=%s&oauth_callback=%s',
         $this->service,
         urlencode($token['oauth_token']),
-        urlencode($service)
+        urlencode($callback)
       ));
       return null;
     } else if ($state['oauth_token'] === $server) {
@@ -90,10 +100,8 @@ class OAuth1Flow extends Flow {
       $session->register(self::SESSION_KEY, $access + ['access' => true]);
       $session->transmit($response);
 
-      // Redirect to self, getting rid of OAuth request parameters
-      $params= $request->params();
-      unset($params['oauth_token'], $params['oauth_verifier']);
-      $this->finalize($response, $uri->using()->params($params)->create());
+      // Redirect to self
+      $this->finalize($response, $state['target']);
       return null;
     }
 

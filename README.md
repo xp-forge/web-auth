@@ -33,10 +33,11 @@ use web\auth\SessionBased;
 use web\auth\oauth\OAuth1Flow;
 use web\session\ForTesting;
 
-$flow= new OAuth1Flow('https://api.twitter.com/oauth', [
-  $credentials->named('twitter_oauth_key'),
-  $credentials->named('twitter_oauth_secret'),
-]);
+$flow= new OAuth1Flow(
+  'https://api.twitter.com/oauth',
+  [$credentials->named('twitter_oauth_key'), $credentials->named('twitter_oauth_secret')],
+  $callback
+);
 $auth= new SessionBased($flow, new ForTesting(), function($client) {
   return $client->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
 });
@@ -45,6 +46,8 @@ return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['screen_name'], 'text/html');
 })];
 ```
+
+*The $callback parameter should be the path matching the path in the callback URI registered with Twitter.*
 
 Authentication via GitHub:
 
