@@ -52,7 +52,23 @@ class CasFlow extends Flow {
     // then finalize this flow by relocating to self without ticket parameter.
     $uri= $this->url(true)->resolve($request);
     if (null === ($ticket= $request->param('ticket'))) {
-      $this->login($response, $this->sso.'/login?service='.urlencode($this->service($uri)));
+      $target= $this->sso.'/login?service='.urlencode($this->service($uri));
+
+      // If a URL fragment is present, append it to the service parameter (and
+      // make sure it's properly encoded!)
+      $this->redirect($response, $target, sprintf('
+        var hash = document.location.hash.substring(1);
+        if (hash) {
+          document.location.replace("%1$s" + encodeURIComponent(
+            (document.location.search ? "&%2$s=" : "?%2$s=") +
+            encodeURIComponent(hash)
+          ));
+        } else {
+          document.location.replace("%1$s");
+        }',
+        $target,
+        self::FRAGMENT
+      ));
       return null;
     }
 

@@ -1,9 +1,11 @@
 <?php namespace web\auth;
 
+use util\URI;
+
 abstract class Flow {
   const FRAGMENT = '_';
 
-  private $url;
+  private $url= null;
 
   /**
    * Targets a given URL
@@ -43,42 +45,31 @@ abstract class Flow {
   }
 
   /**
-   * Send redirect using JavaScript to capture URL fragments. This is so that
-   * sites using URLs like `/#/users/123` will not redirect to "/" when requiring
-   * authentication. Uses `_` as special parameter name.
+   * Perfoms redirection by rendering an HTML page with a given script on it. This
+   * is so that sites using URLs like `/#/users/123` will not redirect to "/" when
+   * requiring authentication.
+   *
+   * Includes a meta refresh in head as fallback for when JavaScript is disabled,
+   * in which case we lose the fragment, but still offer a degraded service.
    *
    * @param  web.Response $response
    * @param  string|util.URI $target
+   * @param  string $script
    * @return void
    */
-  protected function login($response, $target) {
-
-    // Include meta refresh in body as fallback for when JavaScript is disabled,
-    // in which case we lose the fragment, but still offer a degraded service.
-    // Do not move this to HTTP headers to ensure the body has been parsed, and
-    // the JavaScript executed!
+  protected function redirect($response, $target, $script) {
     $redirect= sprintf('<!DOCTYPE html>
       <html>
         <head>
           <title>Redirect</title>
-          <meta http-equiv="refresh" content="1; URL=%1$s">
+          <noscript><meta http-equiv="refresh" content="0; URL=%1$s"></noscript>
         </head>
         <body>
-          <script type="text/javascript">
-            var hash = document.location.hash.substring(1);
-            if (hash) {
-              document.location.replace("%1$s" + encodeURIComponent(
-                (document.location.search ? "&%2$s=" : "?%2$s=") +
-                encodeURIComponent(hash)
-              ));
-            } else {
-              document.location.replace("%1$s");
-            }
-          </script>
+          <script type="text/javascript">%2$s</script>
         </body>
       </html>',
       $target,
-      self::FRAGMENT
+      $script
     );
     $response->send($redirect, 'text/html');
   }
@@ -87,16 +78,17 @@ abstract class Flow {
    * Final redirect, replacing `_` parameter back with fragment if present
    *
    * @param  web.Response $response
-   * @param  util.URI $service
+   * @param  string|util.URI $target
    * @return void
    */
-  protected function finalize($response, $service) {
-    if ($fragment= $service->param(self::FRAGMENT)) {
-      $service= $service->using()->param(self::FRAGMENT, null)->fragment($fragment, false)->create();
-    }
+  protected function finalize($response, $target) {
+    $uri= $target instanceof URI ? $target : new URI($target);
 
     $response->answer(302);
-    $response->header('Location', $service);
+    $response->header('Location', ($fragment= $uri->param(self::FRAGMENT))
+      ? $uri->using()->param(self::FRAGMENT, null)->fragment($fragment, false)->create()
+      : $uri
+    );
   }
 
   /**
