@@ -1,8 +1,8 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
-use unittest\Assert;
-use unittest\{Expect, Test, TestCase};
+use unittest\{Assert, Expect, Test, TestCase};
+use util\URI;
 use web\auth\oauth\{OAuth1Flow, Client};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -18,6 +18,11 @@ class OAuth1FlowTest extends FlowTest {
   #[Test]
   public function can_create() {
     new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+  }
+
+  #[Test]
+  public function callback() {
+    Assert::equals(new URI(self::CALLBACK), (new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK))->callback());
   }
 
   #[Test, Values('paths')]

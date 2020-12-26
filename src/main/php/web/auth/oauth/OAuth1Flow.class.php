@@ -31,6 +31,9 @@ class OAuth1Flow extends Flow {
     }
   }
 
+  /** @return ?util.URI */
+  public function callback() { return $this->callback; }
+
   /**
    * Obtain a request token
    *
