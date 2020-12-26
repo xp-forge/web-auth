@@ -7,7 +7,7 @@ Web Authentication
 [![Requires PHP 7.0+](https://raw.githubusercontent.com/xp-framework/web/master/static/php-7_0plus.png)](http://php.net/)
 [![Latest Stable Version](https://poser.pugx.org/xp-forge/web-auth/version.png)](https://packagist.org/packages/xp-forge/web-auth)
 
-Authentication for web services. Uses sessions to store authentication information.
+Authentication for web services. Supports authenticating URLs with fragments such as `https://example.com/#/users/thekid` without losing information when redirecting.
 
 Examples
 --------
