@@ -57,6 +57,7 @@ $flow= new OAuth2Flow(
   'https://github.com/login/oauth/authorize',
   'https://github.com/login/oauth/access_token',
   [$credentials->named('github_oauth_key'), $credentials->named('github_oauth_secret')],
+  $callback
 );
 $auth= new SessionBased($flow, new ForTesting(), function($client) {
   return $client->fetch('https://api.github.com/user')->value();
@@ -66,6 +67,8 @@ return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/html');
 })];
 ```
+
+*The $callback parameter should be the path matching the path in the callback URI registerd with the service.*
 
 Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
 

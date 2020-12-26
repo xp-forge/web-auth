@@ -10,7 +10,7 @@ use web\session\Sessions;
 class OAuth2Flow extends Flow {
   const SESSION_KEY = 'oauth2::flow';
 
-  private $auth, $tokens, $consumer, $scopes, $rand;
+  private $auth, $tokens, $consumer, $scopes, $callback, $rand;
 
   /**
    * Creates a new OAuth 2 flow
@@ -18,15 +18,29 @@ class OAuth2Flow extends Flow {
    * @param  string|util.URI $auth
    * @param  string|util.URI $tokens
    * @param  web.auth.oauth.Token|string[]|util.Secret[] $consumer
+   * @param  string|util.URI $callback
    * @param  string[] $scopes
    */
-  public function __construct($auth, $tokens, $consumer, $scopes= ['user']) {
+  public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
     $this->tokens= $tokens instanceof URI ? $tokens : new URI($tokens);
     $this->consumer= $consumer instanceof Token ? $consumer : new Token(...$consumer);
-    $this->scopes= $scopes;
+
+    // BC: Support deprecated constructor signature without callback
+    if (is_array($callback) || null === $callback) {
+      trigger_error('Missing parameter $callback', E_USER_DEPRECATED);
+      $this->callback= null;
+      $this->scopes= $callback ?? $scopes;
+    } else {
+      $this->callback= $callback instanceof URI ? $callback : new URI($callback);
+      $this->scopes= $scopes;
+    }
+
     $this->rand= new Random();
   }
+
+  /** @return ?util.URI */
+  public function callback() { return $this->callback; }
 
   /** @return string[] */
   public function scopes() { return $this->scopes; }
@@ -68,19 +82,21 @@ class OAuth2Flow extends Flow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $state= $session->value(self::SESSION_KEY);
+    $stored= $session->value(self::SESSION_KEY);
 
     // We have an access token, return an authenticated session
-    if (isset($state['access_token'])) {
-      return new ByAccessToken($state['access_token'], $state['token_type']);
+    if (isset($stored['access_token'])) {
+      return new ByAccessToken($stored['access_token'], $stored['token_type']);
     }
 
-    // Start authorization flow to acquire an access token
     $uri= $this->url(true)->resolve($request);
+    $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
+
+    // Start authorization flow to acquire an access token
     $server= $request->param('state');
-    if (null === $state || null === $server) {
+    if (null === $stored || null === $server) {
       $state= bin2hex($this->rand->bytes(16));
-      $session->register(self::SESSION_KEY, $state);
+      $session->register(self::SESSION_KEY, ['state' => $state, 'target' => (string)$uri]);
       $session->transmit($response);
 
       // Redirect the user to the authorization page
@@ -88,13 +104,17 @@ class OAuth2Flow extends Flow {
         'response_type' => 'code',
         'client_id'     => $this->consumer->key()->reveal(),
         'scope'         => implode(' ', $this->scopes),
+        'redirect_uri'  => $callback,
         'state'         => $state,
-        'redirect_uri'  => $this->service($uri),
       ]);
 
       $this->login($response, $target->create());
       return null;
-    } else if ($server === $state) {
+    }
+
+    // Continue authorization flow
+    $state= explode('?', $server);
+    if ($state[0] === $stored['state']) {
 
       // Exchange the auth code for an access token
       $token= $this->token([
@@ -102,19 +122,20 @@ class OAuth2Flow extends Flow {
         'client_id'     => $this->consumer->key()->reveal(),
         'client_secret' => $this->consumer->secret()->reveal(),
         'code'          => $request->param('code'),
-        'state'         => $state,
-        'redirect_uri'  => $uri->using()->params([])->create(),
+        'redirect_uri'  => $callback,
+        'state'         => $stored['state'],
       ]);
       $session->register(self::SESSION_KEY, $token);
       $session->transmit($response);
 
-      // Redirect to self, getting rid of OAuth request parameters
-      $params= $request->params();
-      unset($params['state'], $params['code'], $params['session_state']);
-      $this->finalize($response, $uri->using()->params($params)->create());
+      // Redirect to self, using encoded fragment parameter if present
+      $this->finalize($response, $stored['target'].(isset($state[1])
+        ? '#'.urldecode(substr($state[1], strlen(self::FRAGMENT) + 1))
+        : ''
+      ));
       return null;
     }
 
-    throw new IllegalStateException('Flow error, session state '.$state.' != server state '.$server);
+    throw new IllegalStateException('Flow error, session state '.$stored['state'].' != server state '.$state[0]);
   }
 }
