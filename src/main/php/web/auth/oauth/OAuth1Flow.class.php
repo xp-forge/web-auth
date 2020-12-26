@@ -121,10 +121,10 @@ class OAuth1Flow extends Flow {
 
     // Store fragment, then make redirection continue (see redirect() above)
     if ($fragment= $request->param(self::FRAGMENT)) {
-      if (false === ($p= strpos($state['target'], '#'))) {
-        $state['target'].= '#'.$fragment;
+      if ($t= strstr($state['target'], '#', true)) {
+        $state['target']= $t.'#'.$fragment;
       } else {
-        $state['target']= substr($state['target'], 0, $p + 1).$fragment;
+        $state['target'].= '#'.$fragment;
       }
 
       $session->register(self::SESSION_KEY, $state);
