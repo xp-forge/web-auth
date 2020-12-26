@@ -3,6 +3,14 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.1.0 / 2020-12-26
+
+* **Heads up:** OAuth implementations now require a callback URL. If
+  omitted, a deprecation notice will be raised, which will not break
+  production code but make unit tests fail.
+  (@thekid)
+* Merged PR #6: Fix callback URL mismatches, fixing issue #5 - @thekid
+
 ## 2.0.1 / 2020-12-23
 
 * Fixed `ISession::transmit()` not being called after authentication
