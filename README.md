@@ -68,7 +68,7 @@ return ['/' => $auth->required(function($req, $res) {
 })];
 ```
 
-*The $callback parameter should be the path matching the path in the callback URI registerd with the service.*
+*The $callback parameter should be the path matching the path in the callback URI registered with GitHub.*
 
 Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
 
