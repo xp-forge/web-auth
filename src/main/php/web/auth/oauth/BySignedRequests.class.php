@@ -11,6 +11,7 @@ class BySignedRequests extends Client {
   /**
    * Authorize request and returns it
    *
+   * @see    https://stackoverflow.com/questions/10770513/post-request-with-oauth
    * @param  peer.http.HttpRequest $request
    * @return peer.http.HttpRequest
    */
