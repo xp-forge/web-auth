@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Made it possible to send more than just `GET` requests with `fetch()`
+  (@thekid)
+
 ## 2.1.0 / 2020-12-26
 
 * **Heads up:** OAuth implementations now require a callback URL. If
