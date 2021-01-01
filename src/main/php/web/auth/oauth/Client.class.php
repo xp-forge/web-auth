@@ -4,6 +4,7 @@ use peer\URL;
 use peer\http\{HttpConnection, HttpRequest, RequestData};
 
 abstract class Client {
+  const USER_AGENT = 'XP/OAuth';
 
   /**
    * Sends a HTTP request and returns a given HTTP response
@@ -16,12 +17,12 @@ abstract class Client {
   }
 
   /**
-   * Authenticates request and returns it
+   * Authorize request and returns it
    *
    * @param  peer.http.HttpRequest $request
    * @return peer.http.HttpRequest
    */
-  public abstract function authenticate($request);
+  public abstract function authorize($request);
 
   /**
    * Fetch a given URL with options, which may include the following:
@@ -39,8 +40,8 @@ abstract class Client {
     $r= new HttpRequest(new URL($url));
     $r->setMethod($options['method'] ?? 'GET');
     $r->setParameters(isset($options['body']) ? new RequestData($options['body']) : $options['params'] ?? []);
-    $r->addHeaders($options['headers'] ?? []);
+    $r->addHeaders(($options['headers'] ?? []) + ['Accept' => 'application/json', 'User-Agent' => self::USER_AGENT]);
 
-    return new Response($this->send($this->authenticate($r)));
+    return new Response($this->send($this->authorize($r)));
   }
 }

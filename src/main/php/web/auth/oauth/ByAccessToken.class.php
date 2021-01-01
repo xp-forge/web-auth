@@ -17,17 +17,13 @@ class ByAccessToken extends Client {
   }
 
   /**
-   * Authenticates request and returns it
+   * Authorize request and returns it
    *
    * @param  peer.http.HttpRequest $request
    * @return peer.http.HttpRequest
    */
-  public function authenticate($request) {
-    $request->addHeaders([
-      'Accept'        => 'application/json',
-      'User-Agent'    => 'XP/OAuth2',
-      'Authorization' => $this->type.' '.$this->token->reveal()
-    ]);
+  public function authorize($request) {
+    $request->setHeader('Authorization', $this->type.' '.$this->token->reveal());
     return $request;
   }
 

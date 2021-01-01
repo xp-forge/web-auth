@@ -61,7 +61,7 @@ class OAuthBySignedRequestsTest {
       "Connection: close\r\n".
       "Host: example.org\r\n".
       "Accept: application/json\r\n".
-      "User-Agent: XP/OAuth1\r\n".
+      "User-Agent: XP/OAuth\r\n".
       "Authorization: OAuth $oauth\r\n\r\n",
       $fixture->requests[0]->getRequestString()
     );

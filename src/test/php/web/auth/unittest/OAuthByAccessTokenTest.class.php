@@ -51,7 +51,7 @@ class OAuthByAccessTokenTest {
       "Connection: close\r\n".
       "Host: example.org\r\n".
       "Accept: application/json\r\n".
-      "User-Agent: XP/OAuth2\r\n".
+      "User-Agent: XP/OAuth\r\n".
       "Authorization: Bearer 073204f68de382213e92c5792b07b33b\r\n\r\n",
       $fixture->requests[0]->getRequestString()
     );
@@ -70,7 +70,7 @@ class OAuthByAccessTokenTest {
       "Host: example.org\r\n".
       "Content-Type: text/plain\r\n".
       "Accept: application/json\r\n".
-      "User-Agent: XP/OAuth2\r\n".
+      "User-Agent: XP/OAuth\r\n".
       "Authorization: Bearer 073204f68de382213e92c5792b07b33b\r\n".
       "Content-Length: 4\r\n\r\n".
       "Test",

@@ -9,17 +9,17 @@ class BySignedRequests extends Client {
   }
 
   /**
-   * Authenticates request and returns it
+   * Authorize request and returns it
    *
    * @param  peer.http.HttpRequest $request
    * @return peer.http.HttpRequest
    */
-  public function authenticate($request) {
-    $request->addHeaders([
-      'Accept'        => 'application/json',
-      'User-Agent'    => 'XP/OAuth1',
-      'Authorization' => $this->signature->header($request->method, $request->url->getURL(), $request->parameters)
-    ]);
+  public function authorize($request) {
+    $request->setHeader('Authorization', $this->signature->header(
+      $request->method,
+      $request->url->getURL(),
+      $request->parameters
+    ));
     return $request;
   }
 
