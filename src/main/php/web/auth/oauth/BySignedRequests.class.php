@@ -18,7 +18,7 @@ class BySignedRequests extends Client {
     $request->setHeader('Authorization', $this->signature->header(
       $request->method,
       $request->url->getURL(),
-      $request->parameters
+      is_array($request->parameters) ? $request->parameters : []
     ));
     return $request;
   }

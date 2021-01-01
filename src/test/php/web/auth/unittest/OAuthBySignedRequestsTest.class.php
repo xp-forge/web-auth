@@ -66,4 +66,33 @@ class OAuthBySignedRequestsTest {
       $fixture->requests[0]->getRequestString()
     );
   }
+
+  #[Test]
+  public function fetch_using_post() {
+    $fixture= $this->newFixture();
+    $fixture->fetch('https://example.org/', ['method' => 'POST', 'body' => 'Test', 'headers' => [
+      'Content-Type' => 'text/plain'
+    ]]);
+
+    $oauth= implode(', ', [
+      'oauth_consumer_key="consumer"',
+      'oauth_nonce="90a8e9e6d5d4fb731eec44a8ee9dcb65"',
+      'oauth_signature_method="HMAC-SHA1"',
+      'oauth_timestamp="1609499980"',
+      'oauth_version="1.0"',
+      'oauth_signature="W411UNnsrt6QhMa3BfQ6G%2FR8SGY%3D"'
+    ]);
+    Assert::equals(
+      "POST / HTTP/1.1\r\n".
+      "Connection: close\r\n".
+      "Host: example.org\r\n".
+      "Content-Type: text/plain\r\n".
+      "Accept: application/json\r\n".
+      "User-Agent: XP/OAuth\r\n".
+      "Authorization: OAuth $oauth\r\n".
+      "Content-Length: 4\r\n\r\n".
+      "Test",
+      $fixture->requests[0]->getRequestString()
+    );
+  }
 }
