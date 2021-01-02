@@ -109,6 +109,29 @@ class SessionBasedTest {
   }
 
   #[Test]
+  public function marshals_user_to_session() {
+    $session= $this->sessions->create();
+
+    $auth= new SessionBased($this->authenticate(new User(1, 'test')), $this->sessions);
+    $this->handle(['Cookie' => 'session='.$session->id()], $auth->required(function($req, $res) { }));
+
+    Assert::equals(['__type' => User::class, 'id' => 1, 'username' => 'test'], $session->value('user'));
+  }
+
+  #[Test]
+  public function unmarshals_user_from_session() {
+    $session= $this->sessions->create();
+    $session->register('user', ['__type' => User::class, 'id' => 1, 'username' => 'test']);
+
+    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $this->handle(['Cookie' => 'session='.$session->id()], $auth->required(function($req, $res) use(&$user) {
+      $user= $req->value('user');
+    }));
+
+    Assert::equals(new User(1, 'test'), $user);
+  }
+
+  #[Test]
   public function session_is_attached_after_authentication() {
     $user= ['username' => 'test'];
     $attached= null;

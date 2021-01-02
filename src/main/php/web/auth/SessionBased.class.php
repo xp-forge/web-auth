@@ -1,9 +1,11 @@
 <?php namespace web\auth;
 
+use util\data\Marshalling;
 use web\session\Sessions;
 
 class SessionBased extends Authentication {
   private $flow, $sessions, $lookup;
+  private $marshalling= null;
 
   /**
    * Creates a login instance
@@ -29,6 +31,34 @@ class SessionBased extends Authentication {
   }
 
   /**
+   * Unmarshals a value after reading it from the session
+   *
+   * @param  var $value
+   * @return var
+   */
+  protected function unmarshal($value) {
+    if (is_array($value) && isset($value['__type'])) {
+      if (null === $this->marshalling) $this->marshalling= new Marshalling();
+      return $this->marshalling->unmarshal($value, $value['__type']);
+    }
+    return $value;
+  }
+
+  /**
+   * Marshals a value for storing in the session
+   *
+   * @param  var $value
+   * @return var
+   */
+  protected function marshal($value) {
+    if (is_object($value)) {
+      if (null === $this->marshalling) $this->marshalling= new Marshalling();
+      return ['__type' => get_class($value)] + $this->marshalling->marshal($value);
+    }
+    return $value;
+  }
+
+  /**
    * Executes authentication flow. On success, the user is looked up and
    * registered in the session under a key "user".
    *
@@ -39,7 +69,7 @@ class SessionBased extends Authentication {
    */
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
-      $user= $session->value('user');
+      $user= $this->unmarshal($session->value('user'));
     } else {
       $session= $this->sessions->create();
       $user= null;
@@ -50,7 +80,7 @@ class SessionBased extends Authentication {
 
       // Optionally map result to a user using lookup, otherwise use result directly
       $user= $this->lookup ? ($this->lookup)($result) : $result;
-      $session->register('user', $user);
+      $session->register('user', $this->marshal($user));
     }
 
     try {
