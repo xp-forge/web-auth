@@ -97,6 +97,18 @@ class SessionBasedTest {
   }
 
   #[Test]
+  public function passes_user() {
+    $user= ['username' => 'test'];
+
+    $auth= new SessionBased($this->authenticate($user), $this->sessions);
+    $this->handle([], $auth->required(function($req, $res) use(&$passed) {
+      $passed= $req->value('user');
+    }));
+
+    Assert::equals($user, $passed);
+  }
+
+  #[Test]
   public function session_is_attached_after_authentication() {
     $user= ['username' => 'test'];
     $attached= null;
