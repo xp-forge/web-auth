@@ -3,6 +3,8 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.2.0 / 2021-01-03
+
 * Made it possible to send more than just `GET` requests with `fetch()`
   (@thekid)
 
