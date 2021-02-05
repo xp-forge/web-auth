@@ -91,6 +91,20 @@ class OAuth1FlowTest extends FlowTest {
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
 
+  #[Test]
+  public function resets_state_after_returning_client() {
+    $access= ['oauth_token' => 'ACCESS-TOKEN', 'oauth_token_secret' => 'XYZ', 'access' => true];
+    $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth1Flow::SESSION_KEY, $access);
+    $fixture->authenticate($req, $res, $session);
+
+    Assert::null($session->value(OAuth1Flow::SESSION_KEY));
+  }
+
   #[Test, Values('fragments')]
   public function appends_fragment($fragment) {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);

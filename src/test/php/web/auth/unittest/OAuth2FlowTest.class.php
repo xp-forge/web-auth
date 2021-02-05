@@ -207,6 +207,20 @@ class OAuth2FlowTest extends FlowTest {
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
 
+  #[Test]
+  public function resets_state_after_returning_client() {
+    $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, $token);
+    $fixture->authenticate($req, $res, $session);
+
+    Assert::null($session->value(OAuth2Flow::SESSION_KEY));
+  }
+
   /** @deprecated */
   #[Test, Values('paths')]
   public function deprecated_usage_without_callback_uri($path) {

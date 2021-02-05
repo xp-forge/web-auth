@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.2.1 / 2021-02-05
+
+* Reset state after authentication via OAuth in order to prevent dead
+  ends with expired tokens - instead, authentication will be retried
+  (@thekid)
+
 ## 2.2.0 / 2021-01-03
 
 * Made it possible to send more than just `GET` requests with `fetch()`

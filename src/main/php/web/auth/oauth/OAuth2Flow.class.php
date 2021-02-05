@@ -82,15 +82,20 @@ class OAuth2Flow extends Flow {
   public function authenticate($request, $response, $session) {
     $stored= $session->value(self::SESSION_KEY);
 
-    // We have an access token, return an authenticated session
+    // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
-    if (isset($stored['access_token'])) return new ByAccessToken(
-      $stored['access_token'],
-      $stored['token_type'],
-      $stored['scope'] ?? null,
-      $stored['expires_in'] ?? null,
-      $stored['refresh_token'] ?? null
-    );
+    if (isset($stored['access_token'])) {
+      $session->remove(self::SESSION_KEY);
+      $session->transmit($response);
+
+      return new ByAccessToken(
+        $stored['access_token'],
+        $stored['token_type'],
+        $stored['scope'] ?? null,
+        $stored['expires_in'] ?? null,
+        $stored['refresh_token'] ?? null
+      );
+    }
 
     $uri= $this->url(true)->resolve($request);
     $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
