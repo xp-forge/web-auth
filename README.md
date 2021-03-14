@@ -10,6 +10,8 @@ Web Authentication
 
 Authentication for web services. Supports authenticating URLs with fragments such as `https://example.com/#/users/thekid` without losing information when redirecting.
 
+☑ Verified with Twitter (OAuth 1), Microsoft Office 365, GitHub and LinkedIn (OAuth 2).
+
 Examples
 --------
 HTTP basic authentication:
