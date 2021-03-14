@@ -21,7 +21,7 @@ class UseURL implements URL {
    */
   public function resolve($request) {
     return $this->uri->using()
-      ->path(rtrim($this->uri->path(), '/').$request->uri()->path())
+      ->path(rtrim($this->uri->path() ?? '', '/').$request->uri()->path())
       ->query($request->uri()->query())
       ->fragment($request->uri()->fragment(), false)
       ->create()
