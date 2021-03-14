@@ -194,15 +194,14 @@ class OAuth2FlowTest extends FlowTest {
     $this->authenticate($fixture, '/?state=SERVERSTATE&code=SERVER_CODE', $session);
   }
 
-  #[Test]
-  public function returns_client_in_final_step() {
-    $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
+  #[Test, Values([[['access_token' => '<TOKEN>', 'token_type' => 'Bearer']], [['access_token' => '<TOKEN>']]])]
+  public function returns_client_in_final_step($response) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
 
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register(OAuth2Flow::SESSION_KEY, $token);
+    $session->register(OAuth2Flow::SESSION_KEY, $response);
 
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }

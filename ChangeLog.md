@@ -3,6 +3,14 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 2.2.2 / 2021-02-05
+
+* Fixed issue #10: Undefined array key "token_type" when response value
+  does not contain this key. The spec clearly states this is REQUIRED
+  (https://tools.ietf.org/html/rfc6749#section-5.1), some implementations
+  do not return this nevertheless. Default to `Bearer` in this case.
+  (@thekid)
+
 ## 2.2.1 / 2021-02-05
 
 * Reset state after authentication via OAuth in order to prevent dead

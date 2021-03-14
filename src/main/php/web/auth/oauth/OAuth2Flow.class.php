@@ -84,13 +84,14 @@ class OAuth2Flow extends Flow {
 
     // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+    // and https://tools.ietf.org/html/rfc6749#section-5.1
     if (isset($stored['access_token'])) {
       $session->remove(self::SESSION_KEY);
       $session->transmit($response);
 
       return new ByAccessToken(
         $stored['access_token'],
-        $stored['token_type'],
+        $stored['token_type'] ?? 'Bearer',
         $stored['scope'] ?? null,
         $stored['expires_in'] ?? null,
         $stored['refresh_token'] ?? null
