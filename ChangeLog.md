@@ -3,7 +3,7 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
-## 2.2.2 / 2021-02-05
+## 2.2.2 / 2021-03-14
 
 * Fixed issue #10: Undefined array key "token_type" when response value
   does not contain this key. The spec clearly states this is REQUIRED
