@@ -35,7 +35,8 @@ class Basic extends Authentication {
    * @return bool
    */
   public function present($req) {
-    return 1 === sscanf($req->header('Authorization'), "Basic %[^\r]", $_);
+    $auth= $req->header('Authorization');
+    return $auth && 1 === sscanf($auth, "Basic %[^\r]", $_);
   }
 
   /**
@@ -48,7 +49,7 @@ class Basic extends Authentication {
    * @return var
    */
   public function filter($req, $res, $invocation) {
-    if (1 === sscanf($req->header('Authorization'), "Basic %[^\r]", $credentials)) {
+    if (1 === sscanf($req->header('Authorization', ''), "Basic %[^\r]", $credentials)) {
       if (2 === sscanf(base64_decode($credentials), "%[^:]:%[^\r]", $username, $password)) {
         $secret= new Secret($password);
         if (null !== ($user= ($this->login)($username, $secret))) {
