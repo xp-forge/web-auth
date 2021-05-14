@@ -25,7 +25,7 @@ $auth= new Basic('Administration', function($user, Secret $secret) {
 });
 
 return ['/' => $auth->required(function($req, $res) {
-  $res->send('Hello @'.$req->value('user')['id'], 'text/html');
+  $res->send('Hello @'.$req->value('user')['id'], 'text/plain');
 })];
 ```
 
@@ -46,7 +46,7 @@ $auth= new SessionBased($flow, new ForTesting(), function($client) {
 });
 
 return ['/' => $auth->required(function($req, $res) {
-  $res->send('Hello @'.$req->value('user')['screen_name'], 'text/html');
+  $res->send('Hello @'.$req->value('user')['screen_name'], 'text/plain');
 })];
 ```
 
@@ -70,7 +70,7 @@ $auth= new SessionBased($flow, new ForTesting(), function($client) {
 });
 
 return ['/' => $auth->required(function($req, $res) {
-  $res->send('Hello @'.$req->value('user')['login'], 'text/html');
+  $res->send('Hello @'.$req->value('user')['login'], 'text/plain');
 })];
 ```
 
@@ -87,7 +87,7 @@ $flow= new CasFlow('https://sso.example.com/');
 $auth= new SessionBased($flow, new ForTesting());
 
 return ['/' => $auth->required(function($req, $res) {
-  $res->send('Hello @'.$req->value('user')['username'], 'text/html');
+  $res->send('Hello @'.$req->value('user')['username'], 'text/plain');
 })];
 ```
 
