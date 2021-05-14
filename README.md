@@ -14,7 +14,7 @@ Authentication for web services. Supports authenticating URLs with fragments suc
 
 Examples
 --------
-HTTP basic authentication:
+### HTTP basic authentication:
 
 ```php
 use web\auth\Basic;
@@ -29,7 +29,7 @@ return ['/' => $auth->required(function($req, $res) {
 })];
 ```
 
-Authentication via Twitter:
+### Authentication via Twitter:
 
 ```php
 use web\auth\SessionBased;
@@ -52,7 +52,7 @@ return ['/' => $auth->required(function($req, $res) {
 
 *The $callback parameter should be the path matching the path in the callback URI registered with Twitter.*
 
-Authentication via GitHub:
+### Authentication via GitHub:
 
 ```php
 use web\auth\SessionBased;
@@ -76,7 +76,7 @@ return ['/' => $auth->required(function($req, $res) {
 
 *The $callback parameter should be the path matching the path in the callback URI registered with GitHub.*
 
-Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
+### Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
 
 ```php
 use web\auth\SessionBased;
