@@ -109,6 +109,16 @@ class SessionBasedTest {
   }
 
   #[Test]
+  public function passes_token() {
+    $auth= new SessionBased($this->authenticate(['username' => 'test']), $this->sessions);
+    $this->handle([], $auth->required(function($req, $res) use(&$token) {
+      $token= $req->value('token');
+    }));
+
+    Assert::equals(SessionBased::TOKEN_LENGTH, strlen(base64_decode($token)));
+  }
+
+  #[Test]
   public function session_is_attached_after_authentication() {
     $user= ['username' => 'test'];
     $attached= null;

@@ -1,9 +1,17 @@
 <?php namespace web\auth;
 
+use util\Random;
 use web\session\Sessions;
 
 class SessionBased extends Authentication {
+  const TOKEN_LENGTH = 32;
+
+  private static $random;
   private $flow, $sessions, $lookup;
+
+  static function __static() {
+    self::$random= new Random();
+  }
 
   /**
    * Creates a login instance
@@ -40,9 +48,12 @@ class SessionBased extends Authentication {
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
       $user= $session->value('user');
+      $token= $session->value('token');
     } else {
-      $session= $this->sessions->create();
       $user= null;
+      $token= base64_encode(self::$random->bytes(self::TOKEN_LENGTH));
+      $session= $this->sessions->create();
+      $session->register('token', $token);
     }
 
     if (null === $user) {
@@ -54,7 +65,7 @@ class SessionBased extends Authentication {
     }
 
     try {
-      return $invocation->proceed($req->pass('user', $user), $res);
+      return $invocation->proceed($req->pass('user', $user)->pass('token', $token), $res);
     } finally {
       $session->transmit($res);
     }
