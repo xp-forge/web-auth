@@ -3,6 +3,13 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.0.0 / 2021-05-14
+
+* Merged PR #13: Create random token, store in session and pass to request.
+  **Heads up:** Submitting forms without CSRF tokens will result in a `400`
+  error being displayed!
+  (@thekid)
+
 ## 2.2.2 / 2021-03-14
 
 * Fixed issue #10: Undefined array key "token_type" when response value
