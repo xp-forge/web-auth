@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.0.1 / 2021-09-26
+
+* Made compatible with XP web 3.0, see xp-forge/web#83 - @thekid
+
 ## 3.0.0 / 2021-05-14
 
 * Merged PR #13: Create random token, store in session and pass to request.
