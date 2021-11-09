@@ -94,7 +94,8 @@ class OAuth2Flow extends Flow {
         $stored['token_type'] ?? 'Bearer',
         $stored['scope'] ?? null,
         $stored['expires_in'] ?? null,
-        $stored['refresh_token'] ?? null
+        $stored['refresh_token'] ?? null,
+        $stored['id_token'] ?? null
       );
     }
 
