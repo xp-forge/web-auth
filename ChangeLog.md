@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.1.0 / 2021-11-10
+
+* Merged PR #14: Store "id_token" if returned from OAuth token endpoint
+  (@thekid)
+
 ## 3.0.2 / 2021-10-21
 
 * Made library compatible with XP 11, `xp-framework/xml` version 11.0.0
