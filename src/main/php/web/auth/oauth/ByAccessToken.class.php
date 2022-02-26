@@ -8,18 +8,20 @@ class ByAccessToken extends Client {
   /**
    * Creates a new instance with a given token and type (defaulting to 'Bearer')
    *
-   * @param  string|util.Secret $token
+   * @param  string|util.Secret $token `access_token`
    * @param  string $type
    * @param  ?string $scope
    * @param  ?int $expires
-   * @param  ?string|util.Secret $refresh
+   * @param  ?string|util.Secret $refresh `refresh_token`
+   * @param  ?string|util.Secret $id `id_token`
    */
-  public function __construct($token, $type= 'Bearer', $scope= null, $expires= null, $refresh= null) {
+  public function __construct($token, $type= 'Bearer', $scope= null, $expires= null, $refresh= null, $id= null) {
     $this->token= $token instanceof Secret ? $token : new Secret($token);
     $this->type= $type;
     $this->scope= $scope;
-    $this->expires= $expires;
-    $this->refresh= $refresh instanceof Secret ? $refresh : new Secret($refresh);
+    $this->expires= null === $expires ? null : (int)$expires;
+    $this->refresh= null === $refresh ? null : ($refresh instanceof Secret ? $refresh : new Secret($refresh));
+    $this->id= null === $id ? null : ($id instanceof Secret ? $id : new Secret($id));
   }
 
   /** @return util.Secret */
@@ -36,6 +38,9 @@ class ByAccessToken extends Client {
 
   /** @return ?util.Secret */
   public function refresh() { return $this->refresh; }
+
+  /** @return ?util.Secret */
+  public function id() { return $this->id; }
 
   /**
    * Authorize request and returns it
