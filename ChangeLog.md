@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.0.3 / 2022-02-26
+
+* Fixed "Creation of dynamic property" warnings in PHP 8.2 - @thekid
+
 ## 3.0.2 / 2021-10-21
 
 * Made library compatible with XP 11, `xp-framework/xml` version 11.0.0

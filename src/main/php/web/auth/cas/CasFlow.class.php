@@ -13,6 +13,8 @@ use xml\parser\XMLParser;
 class CasFlow extends Flow {
   const SESSION_KEY = 'cas::flow';
 
+  private $sso;
+
   /**
    * Creates a new instance with a given SSO base url
    *
