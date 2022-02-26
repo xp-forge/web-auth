@@ -1,14 +1,11 @@
 <?php namespace web\auth\cas;
 
 use peer\http\HttpConnection;
-use web\Cookie;
-use web\Error;
-use web\Filter;
 use web\auth\Flow;
+use web\{Cookie, Error, Filter};
 use xml\XMLFormatException;
 use xml\dom\Document;
-use xml\parser\StreamInputSource;
-use xml\parser\XMLParser;
+use xml\parser\{StreamInputSource, XMLParser};
 
 class CasFlow extends Flow {
   const SESSION_KEY = 'cas::flow';
