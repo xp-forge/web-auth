@@ -71,6 +71,30 @@ class OAuth2Flow extends Flow {
   }
 
   /**
+   * Refreshes access token given a refresh token
+   *
+   * @param  string|util.Secret $token
+   * @return web.auth.oauth.Client
+   */
+  public function refresh($token) {
+    $result= $this->token([
+      'grant_type'    => 'refresh_token',
+      'refresh_token' => $token instanceof Secret ? $token->reveal() : $token,
+      'client_id'     => $this->consumer->key()->reveal(),
+      'client_secret' => $this->consumer->secret()->reveal(),
+    ]);
+
+    return new ByAccessToken(
+      $result['access_token'],
+      $result['token_type'] ?? 'Bearer',
+      $result['scope'] ?? null,
+      $result['expires_in'] ?? null,
+      $result['refresh_token'] ?? null,
+      $result['id_token'] ?? null
+    );
+  }
+
+  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request
