@@ -24,8 +24,13 @@ class SessionBasedTest {
 
   private function authenticate($result) {
     return newinstance(Flow::class, [], [
-      'authenticate' => function($req, $res, $invocation) use($result) {
-        return $result;
+      'authenticate' => function($req, $res, $session) use($result) {
+        if (isset($result)) return $result;
+
+        // Redirect to SSO
+        $session->transmit($res);
+        $this->redirect($res, 'https://sso.example.com/', 'document.location.replace("%1$s");');
+        return null;
       }
     ]);
   }

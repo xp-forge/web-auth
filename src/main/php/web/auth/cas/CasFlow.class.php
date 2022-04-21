@@ -98,6 +98,8 @@ class CasFlow extends Flow {
     }
 
     $session->register(self::SESSION_KEY, $user);
+    $session->transmit($response);
     $this->finalize($response, $service);
+    return null;
   }
 }
