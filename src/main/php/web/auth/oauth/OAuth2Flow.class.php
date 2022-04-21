@@ -87,8 +87,6 @@ class OAuth2Flow extends Flow {
     // and https://tools.ietf.org/html/rfc6749#section-5.1
     if (isset($stored['access_token'])) {
       $session->remove(self::SESSION_KEY);
-      $session->transmit($response);
-
       return new ByAccessToken(
         $stored['access_token'],
         $stored['token_type'] ?? 'Bearer',
@@ -107,7 +105,6 @@ class OAuth2Flow extends Flow {
     if (null === $stored || null === $server) {
       $state= bin2hex($this->rand->bytes(16));
       $session->register(self::SESSION_KEY, ['state' => $state, 'target' => (string)$uri]);
-      $session->transmit($response);
 
       // Redirect the user to the authorization page
       $params= [
@@ -150,7 +147,6 @@ class OAuth2Flow extends Flow {
         'state'         => $stored['state']
       ]);
       $session->register(self::SESSION_KEY, $token);
-      $session->transmit($response);
 
       // Redirect to self, using encoded fragment if present
       $this->finalize($response, $stored['target'].(isset($state[1]) ? '#'.urldecode($state[1]) : ''));

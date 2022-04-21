@@ -77,8 +77,6 @@ class OAuth1Flow extends Flow {
     // We have an access token, reset state and return an authenticated session
     if (isset($state['access'])) {
       $session->remove(self::SESSION_KEY);
-      $session->transmit($response);
-
       return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
@@ -91,7 +89,6 @@ class OAuth1Flow extends Flow {
       }
 
       $session->register(self::SESSION_KEY, $state);
-      $session->transmit($response);
       $response->send('document.location.replace(target)', 'text/javascript');
       return null;
     }
@@ -104,7 +101,6 @@ class OAuth1Flow extends Flow {
     if (null === $state || null === $server) {
       $token= $this->request('/request_token', null, ['oauth_callback' => $callback]);
       $session->register(self::SESSION_KEY, $token + ['target' => (string)$uri]);
-      $session->transmit($response);
 
       // Redirect the user to the authorization page
       $target= sprintf(
@@ -137,7 +133,6 @@ class OAuth1Flow extends Flow {
       // Back from authentication redirect, upgrade request token to access token
       $access= $this->request('/access_token', $state['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
       $session->register(self::SESSION_KEY, $access + ['access' => true]);
-      $session->transmit($response);
 
       // Redirect to self
       $this->finalize($response, $state['target']);
