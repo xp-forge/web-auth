@@ -4,7 +4,7 @@ use lang\IllegalStateException;
 use unittest\Assert;
 use web\auth\{SessionBased, Flow};
 use web\io\{TestInput, TestOutput};
-use web\session\{ForTesting, Transport};
+use web\session\{ISession, ForTesting, Transport};
 use web\{Request, Response};
 
 class SessionBasedTest {
@@ -24,8 +24,13 @@ class SessionBasedTest {
 
   private function authenticate($result) {
     return newinstance(Flow::class, [], [
-      'authenticate' => function($req, $res, $invocation) use($result) {
-        return $result;
+      'authenticate' => function($req, $res, $session) use($result) {
+        if (isset($result)) return $result;
+
+        // Redirect to SSO
+        $session->transmit($res);
+        $this->redirect($res, 'https://sso.example.com/', 'document.location.replace("%1$s");');
+        return null;
       }
     ]);
   }
@@ -119,18 +124,38 @@ class SessionBasedTest {
   }
 
   #[Test]
+  public function session_is_attached_when_redirecting() {
+    $auth= new SessionBased($this->authenticate(null), $this->sessions->via(newinstance(Transport::class, [], [
+      'locate' => function($sessions, $request) { return null; },
+      'detach' => function($sessions, $response, $session) { },
+      'attach' => function($sessions, $response, $session) use(&$attached) {
+        $attached= $session;
+        $attached->register('times', $attached->value('times', 0) + 1);
+      },
+    ])));
+    $this->handle([], $auth->required(function($req, $res) { }));
+
+    Assert::instance(ISession::class, $attached);
+    Assert::equals(1, $attached->value('times'));
+  }
+
+  #[Test]
   public function session_is_attached_after_authentication() {
     $user= ['username' => 'test'];
     $attached= null;
 
     $auth= new SessionBased($this->authenticate($user), $this->sessions->via(newinstance(Transport::class, [], [
       'locate' => function($sessions, $request) { return null; },
-      'attach' => function($sessions, $response, $session) use(&$attached) { $attached= $session; },
-      'detach' => function($sessions, $response, $session) { }
+      'detach' => function($sessions, $response, $session) { },
+      'attach' => function($sessions, $response, $session) use(&$attached) {
+        $attached= $session;
+        $attached->register('times', $attached->value('times', 0) + 1);
+      },
     ])));
     $this->handle([], $auth->required(function($req, $res) { }));
 
-    Assert::notEquals(null, $attached);
+    Assert::instance(ISession::class, $attached);
+    Assert::equals(1, $attached->value('times'));
     Assert::equals($user, $attached->value('user'));
   }
 }

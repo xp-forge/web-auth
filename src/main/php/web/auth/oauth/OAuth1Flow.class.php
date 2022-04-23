@@ -77,8 +77,6 @@ class OAuth1Flow extends Flow {
     // We have an access token, reset state and return an authenticated session
     if (isset($state['access'])) {
       $session->remove(self::SESSION_KEY);
-      $session->transmit($response);
-
       return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
     }
 

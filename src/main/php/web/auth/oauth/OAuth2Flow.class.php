@@ -111,8 +111,6 @@ class OAuth2Flow extends Flow {
     // and https://tools.ietf.org/html/rfc6749#section-5.1
     if (isset($stored['access_token'])) {
       $session->remove(self::SESSION_KEY);
-      $session->transmit($response);
-
       return new ByAccessToken(
         $stored['access_token'],
         $stored['token_type'] ?? 'Bearer',

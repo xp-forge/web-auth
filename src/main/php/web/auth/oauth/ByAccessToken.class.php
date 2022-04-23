@@ -3,7 +3,7 @@
 use util\Secret;
 
 class ByAccessToken extends Client {
-  private $token, $type, $scope, $expires, $refresh;
+  private $token, $type, $scope, $expires, $refresh, $id;
 
   /**
    * Creates a new instance with a given token and type (defaulting to 'Bearer')

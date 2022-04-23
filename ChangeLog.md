@@ -3,6 +3,14 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Fixed session potentially being transmitted twice when completing an
+  authentication flow.
+  (@thekid)
+
+## 3.1.1 / 2022-02-26
+
+* Fixed "Creation of dynamic property" warnings in PHP 8.2 - @thekid
+
 ## 3.1.0 / 2021-11-10
 
 * Merged PR #14: Store "id_token" if returned from OAuth token endpoint
