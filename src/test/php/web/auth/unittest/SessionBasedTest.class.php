@@ -4,11 +4,10 @@ use lang\IllegalStateException;
 use unittest\Assert;
 use web\auth\{SessionBased, Flow};
 use web\io\{TestInput, TestOutput};
-use web\session\{ISession, ForTesting, Transport};
+use web\session\{ISession, ForTesting};
 use web\{Request, Response};
 
 class SessionBasedTest {
-  private $sessions;
 
   /**
    * Invokes handle() function
@@ -35,22 +34,18 @@ class SessionBasedTest {
     ]);
   }
 
-  #[Before]
-  public function sessions() {
-    $this->sessions= new ForTesting();
-  }
-
   #[Test]
   public function can_create() {
-    new SessionBased($this->authenticate(null), $this->sessions);
+    new SessionBased($this->authenticate(null), new ForTesting());
   }
 
   #[Test]
   public function required() {
-    $session= $this->sessions->create();
+    $sessions= new ForTesting();
+    $session= $sessions->create();
     $session->register('user', ['username' => 'test']);
 
-    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $auth= new SessionBased($this->authenticate(null), $sessions);
     $this->handle(['Cookie' => 'session='.$session->id()], $auth->required(function($req, $res) use(&$user) {
       $user= $req->value('user')['username'];
     }));
@@ -60,7 +55,7 @@ class SessionBasedTest {
 
   #[Test]
   public function handler_not_invoked_if_required_auth_missing() {
-    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $auth= new SessionBased($this->authenticate(null), new ForTesting());
     $this->handle([], $auth->required(function($req, $res) {
       throw new IllegalStateException('Should not be reached');
     }));
@@ -68,7 +63,7 @@ class SessionBasedTest {
 
   #[Test]
   public function optional_without_session() {
-    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $auth= new SessionBased($this->authenticate(null), new ForTesting());
     $this->handle([], $auth->optional(function($req, $res) use(&$user) {
       $user= $req->value('user')['username'] ?? 'guest';
     }));
@@ -78,10 +73,11 @@ class SessionBasedTest {
 
   #[Test]
   public function optional_with_session() {
-    $session= $this->sessions->create();
+    $sessions= new ForTesting();
+    $session= $sessions->create();
     $session->register('user', ['username' => 'test']);
 
-    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $auth= new SessionBased($this->authenticate(null), $sessions);
     $this->handle(['Cookie' => 'session='.$session->id()], $auth->optional(function($req, $res) use(&$user) {
       $user= $req->value('user')['username'] ?? 'guest';
     }));
@@ -91,9 +87,10 @@ class SessionBasedTest {
 
   #[Test]
   public function optional_with_session_without_user() {
-    $session= $this->sessions->create();
+    $sessions= new ForTesting();
+    $session= $sessions->create();
 
-    $auth= new SessionBased($this->authenticate(null), $this->sessions);
+    $auth= new SessionBased($this->authenticate(null), $sessions);
     $this->handle(['Cookie' => 'session='.$session->id()], $auth->optional(function($req, $res) use(&$user) {
       $user= $req->value('user')['username'] ?? 'guest';
     }));
@@ -105,7 +102,7 @@ class SessionBasedTest {
   public function passes_user() {
     $user= ['username' => 'test'];
 
-    $auth= new SessionBased($this->authenticate($user), $this->sessions);
+    $auth= new SessionBased($this->authenticate($user), new ForTesting());
     $this->handle([], $auth->required(function($req, $res) use(&$passed) {
       $passed= $req->value('user');
     }));
@@ -115,7 +112,7 @@ class SessionBasedTest {
 
   #[Test]
   public function passes_token() {
-    $auth= new SessionBased($this->authenticate(['username' => 'test']), $this->sessions);
+    $auth= new SessionBased($this->authenticate(['username' => 'test']), new ForTesting());
     $this->handle([], $auth->required(function($req, $res) use(&$token) {
       $token= $req->value('token');
     }));
@@ -125,14 +122,14 @@ class SessionBasedTest {
 
   #[Test]
   public function session_is_attached_when_redirecting() {
-    $auth= new SessionBased($this->authenticate(null), $this->sessions->via(newinstance(Transport::class, [], [
-      'locate' => function($sessions, $request) { return null; },
-      'detach' => function($sessions, $response, $session) { },
-      'attach' => function($sessions, $response, $session) use(&$attached) {
+    $auth= new SessionBased($this->authenticate(null), newinstance(ForTesting::class, [], [
+      'locate' => function($request) { return null; },
+      'detach' => function($session, $response) { },
+      'attach' => function($session, $response) use(&$attached) {
         $attached= $session;
         $attached->register('times', $attached->value('times', 0) + 1);
       },
-    ])));
+    ]));
     $this->handle([], $auth->required(function($req, $res) { }));
 
     Assert::instance(ISession::class, $attached);
@@ -144,14 +141,14 @@ class SessionBasedTest {
     $user= ['username' => 'test'];
     $attached= null;
 
-    $auth= new SessionBased($this->authenticate($user), $this->sessions->via(newinstance(Transport::class, [], [
-      'locate' => function($sessions, $request) { return null; },
-      'detach' => function($sessions, $response, $session) { },
-      'attach' => function($sessions, $response, $session) use(&$attached) {
+    $auth= new SessionBased($this->authenticate($user), newinstance(ForTesting::class, [], [
+      'locate' => function($request) { return null; },
+      'detach' => function($session, $response) { },
+      'attach' => function($session, $response) use(&$attached) {
         $attached= $session;
         $attached->register('times', $attached->value('times', 0) + 1);
       },
-    ])));
+    ]));
     $this->handle([], $auth->required(function($req, $res) { }));
 
     Assert::instance(ISession::class, $attached);
