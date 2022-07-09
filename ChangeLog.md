@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.2.0 / 2022-07-09
+
+* Merged PR #15: Add OAuth2Flow::refresh() - which uses `refresh_token`
+  to create a new access token
+  (@thekid)
 * Fixed session potentially being transmitted twice when completing an
   authentication flow.
   (@thekid)
