@@ -1,9 +1,9 @@
 <?php namespace web\auth;
 
 use util\Random;
-use web\session\Sessions;
 use lang\Throwable;
-use web\auth\oauth\Client;
+use web\auth\Authorization;
+use web\session\Sessions;
 
 class SessionBased extends Authentication {
   const TOKEN_LENGTH = 32;
@@ -47,7 +47,7 @@ class SessionBased extends Authentication {
    */
   private function authorize($session, $result) {
     $user= $this->lookup ? ($this->lookup)($result) : $result;
-    $session->register('auth', [$result instanceof Client ? $result->refreshable() : null, $user]);
+    $session->register('auth', [$result instanceof Authorization ? $result->refreshable() : null, $user]);
     return $user;
   }
 

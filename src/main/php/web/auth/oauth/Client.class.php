@@ -2,8 +2,9 @@
 
 use peer\URL;
 use peer\http\{HttpConnection, HttpRequest, RequestData};
+use web\auth\Authorization;
 
-abstract class Client {
+abstract class Client extends Authorization {
   const USER_AGENT = 'XP/OAuth';
 
   /**
@@ -15,14 +16,6 @@ abstract class Client {
   protected function send($request) {
     return (new HttpConnection($request->url))->send($request);
   }
-
-  /**
-   * Returns a refreshable authorization - or NULL, if this authorization
-   * does not expire (the default in this implementation).
-   *
-   * @return  ?[:var]
-   */
-  public function refreshable() { return null; }
 
   /**
    * Authorize request and returns it
