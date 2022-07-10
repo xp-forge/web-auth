@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.4.0 / 2022-07-10
+
+* Merged PR #18: Automatically refresh OAuth2 tokens - @thekid
+
 ## 3.3.0 / 2022-07-10
 
 * Made compatible with `xp-forge/sessions` version 3.0 - @thekid
