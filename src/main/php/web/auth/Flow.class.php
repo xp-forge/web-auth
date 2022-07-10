@@ -98,7 +98,7 @@ abstract class Flow {
    * @return ?web.auth.Authorization
    * @throws lang.IllegalStateException
    */
-  public function refresh($claims) { return null; }
+  public function refresh(array $claims) { return null; }
 
   /**
    * Executes authentication flow, returning the authentication result

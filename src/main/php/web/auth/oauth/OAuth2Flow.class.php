@@ -77,7 +77,7 @@ class OAuth2Flow extends Flow {
    * @return ?web.auth.Authorization
    * @throws lang.IllegalStateException
    */
-  public function refresh($claims) {
+  public function refresh(array $claims) {
     if (time() < $claims['expires']) return null;
 
     // Refresh token
