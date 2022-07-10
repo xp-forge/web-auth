@@ -65,7 +65,7 @@ class SessionBased extends Authentication {
       list($claims, $user)= $session->value('auth') ?? [null, $session->value('user')];
       $token= $session->value('token');
 
-      // Refresh if necessary, proceed to reauthenticate if that fails.
+      // Refresh claims if necessary, proceed to reauthenticate if that fails.
       try {
         if ($claims && ($result= $this->flow->refresh($claims))) {
           $user= $this->authorize($session, $result);
@@ -75,10 +75,10 @@ class SessionBased extends Authentication {
         $user= null;
       }
     } else {
+      $user= null;
       $token= base64_encode(self::$random->bytes(self::TOKEN_LENGTH));
       $session= $this->sessions->create();
       $session->register('token', $token);
-      $user= null;
     }
 
     if (null === $user) {
