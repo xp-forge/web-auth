@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.3.0 / 2022-07-10
+
+* Made compatible with `xp-forge/sessions` version 3.0 - @thekid
+
 ## 3.2.0 / 2022-07-09
 
 * Merged PR #15: Add OAuth2Flow::refresh() - which uses `refresh_token`
