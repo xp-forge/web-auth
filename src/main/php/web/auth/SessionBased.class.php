@@ -1,6 +1,8 @@
 <?php namespace web\auth;
 
 use util\Random;
+use lang\Throwable;
+use web\auth\Authorization;
 use web\session\Sessions;
 
 class SessionBased extends Authentication {
@@ -37,6 +39,19 @@ class SessionBased extends Authentication {
   }
 
   /**
+   * Authorizes a given session and returns the user
+   *
+   * @param  web.session.ISession
+   * @param  var $result
+   * @return var
+   */
+  private function authorize($session, $result) {
+    $user= $this->lookup ? ($this->lookup)($result) : $result;
+    $session->register('auth', [$result instanceof Authorization ? $result->claims() : null, $user]);
+    return $user;
+  }
+
+  /**
    * Executes authentication flow. On success, the user is looked up and
    * registered in the session under a key "user".
    *
@@ -47,8 +62,18 @@ class SessionBased extends Authentication {
    */
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
-      $user= $session->value('user');
+      list($claims, $user)= $session->value('auth') ?? [null, $session->value('user')];
       $token= $session->value('token');
+
+      // Refresh claims if necessary, proceed to reauthenticate if that fails.
+      try {
+        if ($claims && ($result= $this->flow->refresh($claims))) {
+          $user= $this->authorize($session, $result);
+          $session->transmit($res);
+        }
+      } catch (Throwable $e) {
+        $user= null;
+      }
     } else {
       $user= null;
       $token= base64_encode(self::$random->bytes(self::TOKEN_LENGTH));
@@ -62,9 +87,8 @@ class SessionBased extends Authentication {
       // In this case, return early from this method w/o passing control on.
       if (null === ($result= $this->flow->authenticate($req, $res, $session))) return;
 
-      // Optionally map result to a user using lookup, otherwise use result directly
-      $user= $this->lookup ? ($this->lookup)($result) : $result;
-      $session->register('user', $user);
+      // Otherwise, authorize and transmit session
+      $user= $this->authorize($session, $result);
       $session->transmit($res);
     }
 

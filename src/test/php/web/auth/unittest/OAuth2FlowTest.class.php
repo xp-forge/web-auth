@@ -220,6 +220,33 @@ class OAuth2FlowTest extends FlowTest {
     Assert::null($session->value(OAuth2Flow::SESSION_KEY));
   }
 
+  #[Test]
+  public function claims_returned() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, ['access_token' => '<T>']);
+
+    Assert::null($fixture->authenticate($req, $res, $session)->claims());
+  }
+
+  #[Test]
+  public function claims_returned_with_expiry() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+
+    $req= new Request(new TestInput('GET', '/'));
+    $res= new Response(new TestOutput());
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, ['access_token' => '<T>', 'expires_in' => 3600, 'refresh_token' => '<R>']);
+
+    Assert::equals(
+      ['expires' => time() + 3600, 'refresh' => '<R>'],
+      $fixture->authenticate($req, $res, $session)->claims()
+    );
+  }
+
   /** @deprecated */
   #[Test, Values('paths')]
   public function deprecated_usage_without_callback_uri($path) {

@@ -2,8 +2,9 @@
 
 use peer\URL;
 use peer\http\{HttpConnection, HttpRequest, RequestData};
+use web\auth\Authorization;
 
-abstract class Client {
+abstract class Client extends Authorization {
   const USER_AGENT = 'XP/OAuth';
 
   /**
