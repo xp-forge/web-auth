@@ -92,6 +92,15 @@ abstract class Flow {
   }
 
   /**
+   * Refreshes access token given a refresh token if necessary.
+   *
+   * @param  [:var] $claims
+   * @return ?web.auth.Authorization
+   * @throws lang.IllegalStateException
+   */
+  public function refresh($claims) { return null; }
+
+  /**
    * Executes authentication flow, returning the authentication result
    *
    * @param  web.Request $request

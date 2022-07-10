@@ -47,7 +47,7 @@ class SessionBased extends Authentication {
    */
   private function authorize($session, $result) {
     $user= $this->lookup ? ($this->lookup)($result) : $result;
-    $session->register('auth', [$result instanceof Authorization ? $result->refreshable() : null, $user]);
+    $session->register('auth', [$result instanceof Authorization ? $result->claims() : null, $user]);
     return $user;
   }
 
@@ -62,20 +62,17 @@ class SessionBased extends Authentication {
    */
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
-      $auth= $session->value('auth') ?? [null, $session->value('user')];
+      list($claims, $user)= $session->value('auth') ?? [null, $session->value('user')];
       $token= $session->value('token');
 
       // Refresh if necessary, proceed to reauthenticate if that fails.
-      if ($auth[0] && time() >= $auth[0]['expires']) {
-        try {
-          $result= $this->flow->refresh($auth[0]['refresh']);
+      try {
+        if ($claims && ($result= $this->flow->refresh($claims))) {
           $user= $this->authorize($session, $result);
           $session->transmit($res);
-        } catch (Throwable $e) {
-          $user= null;
         }
-      } else {
-        $user= $auth[1];
+      } catch (Throwable $e) {
+        $user= null;
       }
     } else {
       $token= base64_encode(self::$random->bytes(self::TOKEN_LENGTH));

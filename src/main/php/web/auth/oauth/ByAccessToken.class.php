@@ -43,7 +43,7 @@ class ByAccessToken extends Client {
   public function id() { return $this->id; }
 
   /** @return ?[:var] */
-  public function refreshable() {
+  public function claims() {
     return null === $this->expires ? null : [
       'expires' => time() + $this->expires,
       'refresh' => $this->refresh ? $this->refresh->reveal() : null

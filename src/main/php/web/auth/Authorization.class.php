@@ -4,11 +4,10 @@
 abstract class Authorization {
   
   /**
-   * Returns a refreshable authorization - or NULL, if this authorization
-   * does not expire (the default in this implementation).
+   * Returns claims for this authorization.
    *
    * @return  ?[:var]
    */
-  public function refreshable() { return null; }
+  public function claims() { return null; }
 
 }

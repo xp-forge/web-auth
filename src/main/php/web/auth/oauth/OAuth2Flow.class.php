@@ -71,19 +71,22 @@ class OAuth2Flow extends Flow {
   }
 
   /**
-   * Refreshes access token given a refresh token
+   * Refreshes access token given a refresh token if necessary.
    *
-   * @param  string|util.Secret $token
-   * @return web.auth.oauth.Client
+   * @param  [:var] $claims
+   * @return ?web.auth.Authorization
+   * @throws lang.IllegalStateException
    */
-  public function refresh($token) {
+  public function refresh($claims) {
+    if (time() < $claims['expires']) return null;
+
+    // Refresh token
     $result= $this->token([
       'grant_type'    => 'refresh_token',
-      'refresh_token' => $token instanceof Secret ? $token->reveal() : $token,
+      'refresh_token' => $claims['refresh'],
       'client_id'     => $this->consumer->key()->reveal(),
       'client_secret' => $this->consumer->secret()->reveal(),
     ]);
-
     return new ByAccessToken(
       $result['access_token'],
       $result['token_type'] ?? 'Bearer',
@@ -100,7 +103,7 @@ class OAuth2Flow extends Flow {
    * @param  web.Request $request
    * @param  web.Response $response
    * @param  web.session.Session $session
-   * @return var
+   * @return ?web.auth.Authorization
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
