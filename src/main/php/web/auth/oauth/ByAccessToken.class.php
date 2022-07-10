@@ -42,6 +42,14 @@ class ByAccessToken extends Client {
   /** @return ?util.Secret */
   public function id() { return $this->id; }
 
+  /** @return ?[:var] */
+  public function refreshable() {
+    return null === $this->expires ? null : [
+      'expires' => time() + $this->expires,
+      'refresh' => $this->refresh ? $this->refresh->reveal() : null
+    ];
+  }
+
   /**
    * Authorize request and returns it
    *

@@ -153,6 +153,6 @@ class SessionBasedTest {
 
     Assert::instance(ISession::class, $attached);
     Assert::equals(1, $attached->value('times'));
-    Assert::equals($user, $attached->value('user'));
+    Assert::equals($user, $attached->value('auth')[1]);
   }
 }

@@ -2,6 +2,8 @@
 
 use util\Random;
 use web\session\Sessions;
+use lang\Throwable;
+use web\auth\oauth\Client;
 
 class SessionBased extends Authentication {
   const TOKEN_LENGTH = 32;
@@ -37,6 +39,19 @@ class SessionBased extends Authentication {
   }
 
   /**
+   * Authorizes a given session and returns the user
+   *
+   * @param  web.session.ISession
+   * @param  var $result
+   * @return var
+   */
+  private function authorize($session, $result) {
+    $user= $this->lookup ? ($this->lookup)($result) : $result;
+    $session->register('auth', [$result instanceof Client ? $result->refreshable() : null, $user]);
+    return $user;
+  }
+
+  /**
    * Executes authentication flow. On success, the user is looked up and
    * registered in the session under a key "user".
    *
@@ -47,13 +62,26 @@ class SessionBased extends Authentication {
    */
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
-      $user= $session->value('user');
+      $auth= $session->value('auth') ?? [null, $session->value('user')];
       $token= $session->value('token');
+
+      // Refresh if necessary, proceed to reauthenticate if that fails.
+      if ($auth[0] && time() >= $auth[0]['expires']) {
+        try {
+          $result= $this->flow->refresh($auth[0]['refresh']);
+          $user= $this->authorize($session, $result);
+          $session->transmit($res);
+        } catch (Throwable $e) {
+          $user= null;
+        }
+      } else {
+        $user= $auth[1];
+      }
     } else {
-      $user= null;
       $token= base64_encode(self::$random->bytes(self::TOKEN_LENGTH));
       $session= $this->sessions->create();
       $session->register('token', $token);
+      $user= null;
     }
 
     if (null === $user) {
@@ -62,9 +90,8 @@ class SessionBased extends Authentication {
       // In this case, return early from this method w/o passing control on.
       if (null === ($result= $this->flow->authenticate($req, $res, $session))) return;
 
-      // Optionally map result to a user using lookup, otherwise use result directly
-      $user= $this->lookup ? ($this->lookup)($result) : $result;
-      $session->register('user', $user);
+      // Otherwise, authorize and transmit session
+      $user= $this->authorize($session, $result);
       $session->transmit($res);
     }
 
