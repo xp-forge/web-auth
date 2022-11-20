@@ -2,7 +2,7 @@
 
 use lang\IllegalStateException;
 use unittest\Assert;
-use web\auth\{SessionBased, Flow};
+use web\auth\{Continuation, SessionBased, Flow};
 use web\io\{TestInput, TestOutput};
 use web\session\{ISession, ForTesting};
 use web\{Request, Response};
@@ -154,5 +154,16 @@ class SessionBasedTest {
     Assert::instance(ISession::class, $attached);
     Assert::equals(1, $attached->value('times'));
     Assert::equals($user, $attached->value('auth')[1]);
+  }
+
+  #[Test]
+  public function continuation_rewrites_uri_and_passes_value() {
+    $sessions= new ForTesting();
+    $auth= new SessionBased($this->authenticate(new Continuation('/login', 'test')), $sessions);
+    $this->handle([], $auth->required(function($req, $res) use(&$passed) {
+      $passed= [$req->uri()->path(), $req->value('auth')];
+    }));
+
+    Assert::equals(['/login', 'test'], $passed);
   }
 }
