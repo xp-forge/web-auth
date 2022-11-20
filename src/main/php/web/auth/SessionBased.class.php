@@ -1,7 +1,7 @@
 <?php namespace web\auth;
 
-use util\Random;
 use lang\Throwable;
+use util\Random;
 use web\auth\Authorization;
 use web\session\Sessions;
 
@@ -35,7 +35,10 @@ class SessionBased extends Authentication {
    * @return bool
    */
   public function present($req) {
-    return ($session= $this->sessions->locate($req)) ? null !== $session->value('user') : false;
+    if ($session= $this->sessions->locate($req)) {
+      return null !== ($session->value('auth') ?? $session->value('user'));
+    }
+    return false;
   }
 
   /**
