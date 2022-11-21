@@ -130,9 +130,15 @@ class OAuth2Flow extends Flow {
     // Start authorization flow to acquire an access token
     $server= $request->param('state');
     if (null === $stored || null === $server) {
-      $state= bin2hex($this->rand->bytes(16));
-      $session->register(self::SESSION_KEY, ['state' => $state, 'target' => (string)$uri]);
-      $session->transmit($response);
+
+      // Reuse state
+      if (isset($stored['state'])) {
+        $state= $stored['state'];
+      } else {
+        $state= bin2hex($this->rand->bytes(16));
+        $session->register(self::SESSION_KEY, ['state' => $state, 'target' => (string)$uri]);
+        $session->transmit($response);
+      }
 
       // Redirect the user to the authorization page
       $params= [
