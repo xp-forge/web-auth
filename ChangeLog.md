@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.4.1 / 2022-11-23
+
+* Merged PR #21: Reuse state when previous redirect was incomplete, see
+  also #19 ("Flow error")
+  (@thekid)
+
 ## 3.4.0 / 2022-07-10
 
 * Merged PR #18: Automatically refresh OAuth2 tokens - @thekid
