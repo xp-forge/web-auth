@@ -156,6 +156,16 @@ class OAuth2FlowTest extends FlowTest {
   }
 
   #[Test]
+  public function reuses_state_when_previous_redirect_incomplete() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, ['state' => 'REUSED_STATE', 'target' => self::SERVICE]);
+
+    $this->authenticate($fixture, '/', $session);
+    Assert::equals('REUSED_STATE', $session->value(OAuth2Flow::SESSION_KEY)['state']);
+  }
+
+  #[Test]
   public function gets_access_token_and_redirects_to_self() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
