@@ -1,9 +1,9 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
-use unittest\{Assert, Expect, Test, TestCase};
+use test\{Assert, Expect, Test, Values};
 use util\URI;
-use web\auth\oauth\{OAuth1Flow, Client};
+use web\auth\oauth\{Client, OAuth1Flow};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
@@ -25,7 +25,7 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals(new URI(self::CALLBACK), (new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK))->callback());
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function fetches_request_token_then_redirects_to_auth($path) {
     $request= ['oauth_token' => 'T'];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET], self::CALLBACK], [
@@ -40,7 +40,7 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals('http://localhost'.$path, $session->value(OAuth1Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function fetches_request_token_then_redirects_to_auth_with_fragment_in_special_parameter($fragment) {
     $request= ['oauth_token' => 'T'];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET], self::CALLBACK], [
@@ -105,7 +105,7 @@ class OAuth1FlowTest extends FlowTest {
     Assert::null($session->value(OAuth1Flow::SESSION_KEY));
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function appends_fragment($fragment) {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
 
@@ -119,7 +119,7 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function replaces_fragment($fragment) {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
 
@@ -134,7 +134,7 @@ class OAuth1FlowTest extends FlowTest {
   }
 
   /** @deprecated */
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function deprecated_usage_without_callback_uri($path) {
     $request= ['oauth_token' => 'T'];
     $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [

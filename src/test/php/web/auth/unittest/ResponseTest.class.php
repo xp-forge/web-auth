@@ -3,8 +3,8 @@
 use io\streams\{MemoryInputStream, Streams};
 use lang\FormatException;
 use peer\http\HttpResponse;
-use unittest\Assert;
-use unittest\{Expect, Test, TestCase, Values};
+use test\Assert;
+use test\{Expect, Test, TestCase, Values};
 use web\auth\oauth\Response;
 
 class ResponseTest {
@@ -65,12 +65,12 @@ class ResponseTest {
     Assert::equals(['key' => 'Test'], $fixture->value());
   }
 
-  #[Test, Expect(['class' => FormatException::class, 'withMessage' => 'Cannot convert content without a mime type to a value'])]
+  #[Test, Expect(class: FormatException::class, message: 'Cannot convert content without a mime type to a value')]
   public function cannot_convert_unknown_to_value() {
     $this->response("Content-Length: 3\r\n", '...')->value();
   }
 
-  #[Test, Expect(['class' => FormatException::class, 'withMessage' => 'Cannot convert "text/html" to a value'])]
+  #[Test, Expect(class: FormatException::class, message: 'Cannot convert "text/html" to a value')]
   public function cannot_convert_html_to_value() {
     $this->response("Content-Type: text/html\r\nContent-Length: 9\r\n", '<html>...')->value();
   }

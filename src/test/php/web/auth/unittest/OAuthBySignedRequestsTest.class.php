@@ -2,7 +2,7 @@
 
 use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
-use unittest\{Assert, Before, Test};
+use test\{Assert, Before, Test};
 use web\auth\oauth\{BySignedRequests, Signature, Token};
 
 class OAuthBySignedRequestsTest {

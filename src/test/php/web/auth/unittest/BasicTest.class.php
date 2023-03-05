@@ -1,7 +1,7 @@
 <?php namespace web\auth\unittest;
 
-use lang\{IllegalStateException, IllegalArgumentException};
-use unittest\Assert;
+use lang\{IllegalArgumentException, IllegalStateException};
+use test\{Assert, Before, Expect, Test, Values};
 use web\auth\Basic;
 use web\filters\Invocation;
 use web\io\{TestInput, TestOutput};

@@ -1,10 +1,10 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
-use unittest\Assert;
-use web\auth\{SessionBased, Flow};
+use test\{Assert, Test};
+use web\auth\{Flow, SessionBased};
 use web\io\{TestInput, TestOutput};
-use web\session\{ISession, ForTesting};
+use web\session\{ForTesting, ISession};
 use web\{Request, Response};
 
 class SessionBasedTest {

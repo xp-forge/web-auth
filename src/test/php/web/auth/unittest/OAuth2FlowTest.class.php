@@ -1,9 +1,9 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
-use unittest\{Assert, Expect, Test, TestCase, Values};
+use test\{Assert, Expect, Test, TestCase, Values};
 use util\URI;
-use web\auth\oauth\{OAuth2Flow, Client};
+use web\auth\oauth\{Client, OAuth2Flow};
 use web\auth\{UseCallback, UseRequest, UseURL};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -58,7 +58,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals(['user'], (new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK))->scopes());
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_auth($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
@@ -72,7 +72,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals('http://localhost'.$path, $session->value(OAuth2Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_auth_with_relative_callback($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, '/callback');
     $session= (new ForTesting())->create();
@@ -86,7 +86,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals('http://localhost'.$path, $session->value(OAuth2Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_auth_using_request($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
@@ -100,7 +100,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals('http://localhost'.$path, $session->value(OAuth2Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_auth_using_url($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
@@ -114,7 +114,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals(self::SERVICE.$path, $session->value(OAuth2Flow::SESSION_KEY)['target']);
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function redirects_to_sso_with_fragment($fragment) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
@@ -180,7 +180,7 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals($token, $session->value(OAuth2Flow::SESSION_KEY));
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function gets_access_token_and_redirects_to_self_with_fragment($fragment) {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
@@ -258,7 +258,7 @@ class OAuth2FlowTest extends FlowTest {
   }
 
   /** @deprecated */
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function deprecated_usage_without_callback_uri($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER);
     \xp::gc();
@@ -273,7 +273,7 @@ class OAuth2FlowTest extends FlowTest {
   }
 
   /** @deprecated */
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function deprecated_usage_with_scopes_in_place_of_callback_uri($path) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, ['user']);
     \xp::gc();

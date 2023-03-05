@@ -2,10 +2,10 @@
 
 use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
-use unittest\Assert;
-use unittest\{Expect, Test, TestCase, Values};
+use test\Assert;
+use test\{Expect, Test, TestCase, Values};
 use web\auth\cas\CasFlow;
-use web\auth\{UseURL, UseRequest};
+use web\auth\{UseRequest, UseURL};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Error, Request, Response};
@@ -45,7 +45,7 @@ class CasFlowTest extends FlowTest {
     new CasFlow(self::SSO);
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_sso($path) {
     $this->assertLoginWith(
       'http://localhost'.$path,
@@ -53,7 +53,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_sso_using_request($path) {
     $this->assertLoginWith(
       'http://localhost'.$path,
@@ -61,7 +61,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('paths')]
+  #[Test, Values(from: 'paths')]
   public function redirects_to_sso_given_service($path) {
     $this->assertLoginWith(
       self::SERVICE.$path,
@@ -69,7 +69,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function redirects_to_sso_with_fragment_in_special_parameter($fragment) {
     $this->assertLoginWith(
       'http://localhost/?_='.urlencode($fragment),
@@ -77,7 +77,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function redirects_to_sso_with_fragment_in_special_parameter_using_request($fragment) {
     $this->assertLoginWith(
       'http://localhost/?_='.urlencode($fragment),
@@ -85,7 +85,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function redirects_to_sso_with_fragment_in_special_parameter_given_service($fragment) {
     $this->assertLoginWith(
       self::SERVICE.'/?_='.urlencode($fragment),
@@ -93,7 +93,7 @@ class CasFlowTest extends FlowTest {
     );
   }
 
-  #[Test, Values('fragments')]
+  #[Test, Values(from: 'fragments')]
   public function redirects_to_self_with_fragment_from_special_parameter($fragment) {
     $fixture= new class(self::SSO) extends CasFlow {
       public function validate($ticket, $service) {
@@ -192,7 +192,7 @@ class CasFlowTest extends FlowTest {
     Assert::equals($user, $result);
   }
 
-  #[Test, Expect(class: Error::class, withMessage: '/INVALID_TICKET: Ticket .+ not recognized/')]
+  #[Test, Expect(class: Error::class, message: '/INVALID_TICKET: Ticket .+ not recognized/')]
   public function shows_error_when_ticket_cannot_be_validated() {
     $fixture= new class(self::SSO) extends CasFlow {
       public function validate($ticket, $service) {
@@ -209,7 +209,7 @@ class CasFlowTest extends FlowTest {
     $this->authenticate($fixture, '/?ticket='.self::TICKET);
   }
 
-  #[Test, Expect(class: Error::class, withMessage: '/UNEXPECTED: .+/')]
+  #[Test, Expect(class: Error::class, message: '/UNEXPECTED: .+/')]
   public function shows_error_when_validation_response_invalid() {
     $fixture= new class(self::SSO) extends CasFlow {
       public function validate($ticket, $service) {
@@ -224,7 +224,7 @@ class CasFlowTest extends FlowTest {
     $this->authenticate($fixture, '/?ticket='.self::TICKET);
   }
 
-  #[Test, Expect(class: Error::class, withMessage: '/FORMAT: Validation cannot be parsed/')]
+  #[Test, Expect(class: Error::class, message: '/FORMAT: Validation cannot be parsed/')]
   public function shows_error_when_validation_response_not_well_formed() {
     $fixture= new class(self::SSO) extends CasFlow {
       public function validate($ticket, $service) {

@@ -1,6 +1,6 @@
 <?php namespace web\auth\unittest;
 
-use unittest\AssertionFailedError;
+use test\AssertionFailedError;
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
 use web\{Request, Response};
