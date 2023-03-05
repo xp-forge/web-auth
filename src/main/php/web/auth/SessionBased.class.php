@@ -86,13 +86,19 @@ class SessionBased extends Authentication {
 
     if (null === $user) {
 
-      // Authentication may require redirection in order to fulfill its job.
-      // In this case, return early from this method w/o passing control on.
-      if (null === ($result= $this->flow->authenticate($req, $res, $session))) return;
-
-      // Otherwise, authorize and transmit session
-      $user= $this->authorize($session, $result);
-      $session->transmit($res);
+      // Authentication may require redirection (indicated by returning NULL)
+      // or showing a page (indicated by returing a Continuation instance) in
+      // order to fulfill its job.
+      $result= $this->flow->authenticate($req, $res, $session);
+      if (null === $result) {
+        return;
+      } else if ($result instanceof Continuation) {
+        $req->rewrite($result->uri)->pass('auth', $result->value);
+        $session->transmit($res);
+      } else {
+        $user= $this->authorize($session, $result);
+        $session->transmit($res);
+      }
     }
 
     return $invocation->proceed($req->pass('user', $user)->pass('token', $token), $res);
