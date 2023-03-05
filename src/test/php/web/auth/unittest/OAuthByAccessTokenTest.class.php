@@ -2,7 +2,7 @@
 
 use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
-use unittest\{Assert, Test};
+use test\{Assert, Test};
 use web\auth\oauth\ByAccessToken;
 
 class OAuthByAccessTokenTest {
