@@ -3,6 +3,8 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #23: Migrate to new testing library - @thekid
+
 ## 3.4.1 / 2022-11-23
 
 * Merged PR #21: Reuse state when previous redirect was incomplete, see
