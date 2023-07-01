@@ -17,7 +17,7 @@ class OAuth2Flow extends Flow {
    *
    * @param  string|util.URI $auth
    * @param  string|util.URI $tokens
-   * @param  web.auth.oauth.Credentials|string[]|util.Secret[] $consumer
+   * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $consumer
    * @param  string|util.URI $callback
    * @param  string[] $scopes
    */

@@ -16,8 +16,8 @@ class BySecret extends Credentials {
     $this->secret= $secret instanceof Secret ? $secret : new Secret($secret);
   }
 
-  /** Returns parameter to be used in authentication process */
-  public function params(string $endpoint): array {
+  /** Returns parameters to be used in authentication process */
+  public function params(string $endpoint, int $time= null): array {
     return [
       'client_id'     => $this->clientId,
       'client_secret' => $this->secret->reveal(),

@@ -13,6 +13,6 @@ abstract class Credentials {
     $this->clientId= $clientId;
   }
 
-  /** Returns parameter to be used in authentication process */
-  public abstract function params(string $endpoint): array;
+  /** Returns parameters to be used in authentication process */
+  public abstract function params(string $endpoint, int $time= null): array;
 }
