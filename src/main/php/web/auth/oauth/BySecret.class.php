@@ -3,7 +3,7 @@
 use util\Secret;
 
 class BySecret extends Credentials {
-  protected $secret;
+  private $secret;
 
   /**
    * Creates credentials with a client ID and secret
@@ -15,6 +15,9 @@ class BySecret extends Credentials {
     parent::__construct($clientId);
     $this->secret= $secret instanceof Secret ? $secret : new Secret($secret);
   }
+
+  /** @return util.Secret */
+  public function secret() { return $this->secret; }
 
   /** Returns parameters to be used in authentication process */
   public function params(string $endpoint, int $time= null): array {

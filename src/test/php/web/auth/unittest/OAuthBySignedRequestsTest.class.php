@@ -3,7 +3,7 @@
 use io\streams\MemoryInputStream;
 use peer\http\HttpResponse;
 use test\{Assert, Before, Test};
-use web\auth\oauth\{BySignedRequests, Signature, Token};
+use web\auth\oauth\{BySignedRequests, Signature, BySecret};
 
 class OAuthBySignedRequestsTest {
   private $signature;
@@ -23,7 +23,7 @@ class OAuthBySignedRequestsTest {
 
   #[Before]
   public function initialize() {
-    $this->signature= new class(new Token('consumer', '073204f68de382213e92c5792b07b33b')) extends Signature {
+    $this->signature= new class(new BySecret('consumer', '073204f68de382213e92c5792b07b33b')) extends Signature {
       public function header($method, $url, $parameters= []) {
         return parent::header($method, $url, $parameters + [
           'oauth_nonce'     => '90a8e9e6d5d4fb731eec44a8ee9dcb65',
