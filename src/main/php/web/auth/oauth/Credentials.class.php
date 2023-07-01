@@ -1,16 +1,16 @@
 <?php namespace web\auth\oauth;
 
 abstract class Credentials {
-  public $clientId;
+  public $key;
 
   /**
    * Creates credentials with a client ID and secret
    *
-   * @param  string $clientId
+   * @param  string $key
    * @param  string|util.Secret $secret
    */
-  public function __construct($clientId) {
-    $this->clientId= $clientId;
+  public function __construct($key) {
+    $this->key= $key;
   }
 
   /** Returns parameters to be used in authentication process */

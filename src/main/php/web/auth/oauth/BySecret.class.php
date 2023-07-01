@@ -22,7 +22,7 @@ class BySecret extends Credentials {
   /** Returns parameters to be used in authentication process */
   public function params(string $endpoint, int $time= null): array {
     return [
-      'client_id'     => $this->clientId,
+      'client_id'     => $this->key,
       'client_secret' => $this->secret->reveal(),
     ];
   }

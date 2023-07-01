@@ -149,7 +149,7 @@ class OAuth2Flow extends Flow {
       // Redirect the user to the authorization page
       $params= [
         'response_type' => 'code',
-        'client_id'     => $this->consumer->clientId,
+        'client_id'     => $this->consumer->key,
         'scope'         => implode(' ', $this->scopes),
         'redirect_uri'  => $callback,
         'state'         => $state

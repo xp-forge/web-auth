@@ -17,13 +17,13 @@ class Signature {
       'oauth_version'          => '1.0',
       'oauth_nonce'            => md5(microtime(true)),
       'oauth_timestamp'        => time(),
-      'oauth_consumer_key'     => $this->consumer->clientId,
+      'oauth_consumer_key'     => $this->consumer->key,
       'oauth_signature_method' => 'HMAC-SHA1',
     ];
 
     $key= rawurlencode($this->consumer->secret()->reveal()).'&';
     if ($this->token) {
-      $parameters+= ['oauth_token' => $this->token->clientId];
+      $parameters+= ['oauth_token' => $this->token->key];
       $key.= rawurlencode($this->token->secret()->reveal());
     }
 
