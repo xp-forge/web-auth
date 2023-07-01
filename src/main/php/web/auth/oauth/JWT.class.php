@@ -22,14 +22,20 @@ class JWT {
     return strtr(rtrim(base64_encode($bytes), '='), '+/', '-_');
   }
 
-  /** Sign JWT and return token */
+  /**
+   * Sign JWT and return token
+   *
+   * @param  OpenSSLAsymmetricKey $key
+   * @return string
+   * @throws lang.IllegalStateException if signing fails
+   */
   public function sign($key): string {
     $input= self::base64(json_encode($this->header)).'.'.self::base64(json_encode($this->payload));
 
     // Hardcode SHA256 signing via OpenSSL here, would need algorithm-based
     // handling in order for this to be a full implementation, see e.g.
     // https://github.com/firebase/php-jwt/blob/v6.2.0/src/JWT.php#L220
-    if (!openssl_sign($input, $signature, openssl_pkey_get_private($key), 'SHA256')) {
+    if (!openssl_sign($input, $signature, $key, 'SHA256')) {
       throw new IllegalStateException(openssl_error_string());
     }
 
