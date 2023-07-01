@@ -11,11 +11,12 @@ use web\session\ForTesting;
 use web\{Request, Response};
 
 class OAuth2FlowTest extends FlowTest {
-  const AUTH     = 'https://example.com/oauth/authorize';
-  const TOKENS   = 'https://example.com/oauth/access_token';
-  const CONSUMER = ['bf396750', '5ebe2294ecd0e0f08eab7690d2a6ee69'];
-  const SERVICE  = 'https://service.example.com';
-  const CALLBACK = 'https://service.example.com/callback';
+  const AUTH        = 'https://example.com/oauth/authorize';
+  const TOKENS      = 'https://example.com/oauth/access_token';
+  const CONSUMER    = ['bf396750', '5ebe2294ecd0e0f08eab7690d2a6ee69'];
+  const SERVICE     = 'https://service.example.com';
+  const CALLBACK    = 'https://service.example.com/callback';
+  const FINGERPRINT = 'd41d8cd98f00b204e9800998ecf8427e';
 
   /**
    * Asserts a given response redirects to a given OAuth endpoint
@@ -187,7 +188,7 @@ class OAuth2FlowTest extends FlowTest {
   public function passes_client_id_assertion_and_rs256_jwt() {
     $key= openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
 
-    $credentials= new ByCertificate('client-id', 'fingerprint', $key);
+    $credentials= new ByCertificate('client-id', self::FINGERPRINT, $key);
     $state= 'SHAREDSTATE';
     $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
       'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
