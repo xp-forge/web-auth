@@ -1,9 +1,10 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
+use test\verify\Runtime;
 use test\{Assert, Expect, Test, TestCase, Values};
 use util\URI;
-use web\auth\oauth\{Client, OAuth2Flow};
+use web\auth\oauth\{Client, BySecret, ByCertificate, Token, OAuth2Flow};
 use web\auth\{UseCallback, UseRequest, UseURL};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -163,6 +164,43 @@ class OAuth2FlowTest extends FlowTest {
 
     $this->authenticate($fixture, '/', $session);
     Assert::equals('REUSED_STATE', $session->value(OAuth2Flow::SESSION_KEY)['state']);
+  }
+
+  #[Test]
+  public function passes_client_id_and_secret() {
+    $credentials= new BySecret('client-id', 'secret');
+    $state= 'SHAREDSTATE';
+    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
+      'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
+    ]);
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
+
+    $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
+    Assert::equals('authorization_code', $passed['grant_type']);
+    Assert::equals('SERVER_CODE', $passed['code']);
+    Assert::equals('client-id', $passed['client_id']);
+    Assert::equals('secret', $passed['client_secret']);
+  }
+
+  #[Test, Runtime(extensions: ['openssl'])]
+  public function passes_client_id_assertion_and_rs256_jwt() {
+    $key= openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+
+    $credentials= new ByCertificate('client-id', 'fingerprint', $key);
+    $state= 'SHAREDSTATE';
+    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
+      'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
+    ]);
+    $session= (new ForTesting())->create();
+    $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
+
+    $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
+    Assert::equals('authorization_code', $passed['grant_type']);
+    Assert::equals('SERVER_CODE', $passed['code']);
+    Assert::equals('client-id', $passed['client_id']);
+    Assert::equals('urn:ietf:params:oauth:client-assertion-type:jwt-bearer', $passed['client_assertion_type']);
+    Assert::true(isset($passed['client_assertion']));
   }
 
   #[Test]
