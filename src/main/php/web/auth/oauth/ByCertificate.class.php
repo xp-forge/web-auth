@@ -8,6 +8,7 @@ use util\UUID;
  * Authorization Grants
  *
  * @test web.auth.unittest.ByCertificateTest
+ * @see  https://tools.ietf.org/html/rfc7523
  * @ext  openssl
  */
 class ByCertificate extends Credentials {
