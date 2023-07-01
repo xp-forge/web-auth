@@ -11,6 +11,8 @@ use web\session\ForTesting;
 use web\{Request, Response};
 
 class OAuth2FlowTest extends FlowTest {
+  use PrivateKey;
+
   const AUTH        = 'https://example.com/oauth/authorize';
   const TOKENS      = 'https://example.com/oauth/access_token';
   const CONSUMER    = ['bf396750', '5ebe2294ecd0e0f08eab7690d2a6ee69'];
@@ -186,11 +188,7 @@ class OAuth2FlowTest extends FlowTest {
 
   #[Test, Runtime(extensions: ['openssl'])]
   public function passes_client_id_assertion_and_rs256_jwt() {
-    if (!($key= openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]))) {
-      throw new IllegalStateException('Cannot generate private key: '.openssl_error_string());
-    }
-
-    $credentials= new ByCertificate('client-id', self::FINGERPRINT, $key);
+    $credentials= new ByCertificate('client-id', self::FINGERPRINT, $this->newPrivateKey());
     $state= 'SHAREDSTATE';
     $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
       'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }

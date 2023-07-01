@@ -7,6 +7,8 @@ use web\auth\oauth\ByCertificate;
 
 #[Runtime(extensions: ['openssl'])]
 class ByCertificateTest {
+  use PrivateKey;
+
   const CLIENT_ID   = 'b2ba8814';
   const FINGERPRINT = 'd41d8cd98f00b204e9800998ecf8427e';
   const ENDPOINT    = 'https://login.example.com/oauth/token';
@@ -15,9 +17,7 @@ class ByCertificateTest {
 
   #[Before]
   public function key() {
-    if (!($this->key= openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]))) {
-      throw new IllegalStateException('Cannot generate private key: '.openssl_error_string());
-    }
+    $this->key= $this->newPrivateKey();
   }
 
   #[Test]
