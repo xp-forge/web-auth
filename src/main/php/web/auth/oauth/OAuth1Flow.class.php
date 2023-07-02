@@ -15,12 +15,20 @@ class OAuth1Flow extends Flow {
    * Creates a new OAuth 1 flow
    *
    * @param  string|util.URI $service
-   * @param  web.auth.oauth.Token|string[]|util.Secret[] $consumer
+   * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $consumer
    * @param  string|util.URI $callback
    */
   public function __construct($service, $consumer, $callback= null) {
     $this->service= rtrim($service, '/');
-    $this->signature= new Signature($consumer instanceof Token ? $consumer : new Token(...$consumer));
+
+    // BC: Support web.auth.oauth.Token instances
+    if ($consumer instanceof Credentials) {
+      $this->signature= new Signature($consumer);
+    } else if ($consumer instanceof Token) {
+      $this->signature= new Signature(new BySecret($consumer->key()->reveal(), $consumer->secret()));
+    } else {
+      $this->signature= new Signature(new BySecret(...$consumer));
+    }
 
     // BC: Support deprecated constructor signature without callback
     if (null === $callback) {
@@ -77,7 +85,7 @@ class OAuth1Flow extends Flow {
     // We have an access token, reset state and return an authenticated session
     if (isset($state['access'])) {
       $session->remove(self::SESSION_KEY);
-      return new BySignedRequests($this->signature->with(new Token($state['oauth_token'], $state['oauth_token_secret'])));
+      return new BySignedRequests($this->signature->with(new BySecret($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
     // Store fragment, then make redirection continue (see redirect() above)

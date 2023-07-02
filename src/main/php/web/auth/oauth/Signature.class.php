@@ -3,12 +3,12 @@
 class Signature {
   private $consumer, $token;
 
-  public function __construct(Token $consumer, Token $token= null) {
+  public function __construct(BySecret $consumer, BySecret $token= null) {
     $this->consumer= $consumer;
     $this->token= $token;
   }
 
-  public function with(Token $token) {
+  public function with(BySecret $token) {
     return new self($this->consumer, $token);
   }
 
@@ -17,13 +17,13 @@ class Signature {
       'oauth_version'          => '1.0',
       'oauth_nonce'            => md5(microtime(true)),
       'oauth_timestamp'        => time(),
-      'oauth_consumer_key'     => $this->consumer->key()->reveal(),
+      'oauth_consumer_key'     => $this->consumer->key,
       'oauth_signature_method' => 'HMAC-SHA1',
     ];
 
     $key= rawurlencode($this->consumer->secret()->reveal()).'&';
     if ($this->token) {
-      $parameters+= ['oauth_token' => $this->token->key()->reveal()];
+      $parameters+= ['oauth_token' => $this->token->key];
       $key.= rawurlencode($this->token->secret()->reveal());
     }
 

@@ -2,6 +2,7 @@
 
 use util\Secret;
 
+/** @deprecated Use web.auth.oauth.BySecret instead */
 class Token {
   private $key, $secret;
 

@@ -17,14 +17,22 @@ class OAuth2Flow extends Flow {
    *
    * @param  string|util.URI $auth
    * @param  string|util.URI $tokens
-   * @param  web.auth.oauth.Token|string[]|util.Secret[] $consumer
+   * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $consumer
    * @param  string|util.URI $callback
    * @param  string[] $scopes
    */
   public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
     $this->tokens= $tokens instanceof URI ? $tokens : new URI($tokens);
-    $this->consumer= $consumer instanceof Token ? $consumer : new Token(...$consumer);
+
+    // BC: Support web.auth.oauth.Token instances
+    if ($consumer instanceof Credentials) {
+      $this->consumer= $consumer;
+    } else if ($consumer instanceof Token) {
+      $this->consumer= new BySecret($consumer->key()->reveal(), $consumer->secret());
+    } else {
+      $this->consumer= new BySecret(...$consumer);
+    }
 
     // BC: Support deprecated constructor signature without callback
     if (is_array($callback) || null === $callback) {
@@ -81,11 +89,9 @@ class OAuth2Flow extends Flow {
     if (time() < $claims['expires']) return null;
 
     // Refresh token
-    $result= $this->token([
+    $result= $this->token($this->consumer->params($this->tokens) + [
       'grant_type'    => 'refresh_token',
       'refresh_token' => $claims['refresh'],
-      'client_id'     => $this->consumer->key()->reveal(),
-      'client_secret' => $this->consumer->secret()->reveal(),
     ]);
     return new ByAccessToken(
       $result['access_token'],
@@ -143,7 +149,7 @@ class OAuth2Flow extends Flow {
       // Redirect the user to the authorization page
       $params= [
         'response_type' => 'code',
-        'client_id'     => $this->consumer->key()->reveal(),
+        'client_id'     => $this->consumer->key,
         'scope'         => implode(' ', $this->scopes),
         'redirect_uri'  => $callback,
         'state'         => $state
@@ -172,10 +178,8 @@ class OAuth2Flow extends Flow {
     if ($state[0] === $stored['state']) {
 
       // Exchange the auth code for an access token
-      $token= $this->token([
+      $token= $this->token($this->consumer->params($this->tokens) + [
         'grant_type'    => 'authorization_code',
-        'client_id'     => $this->consumer->key()->reveal(),
-        'client_secret' => $this->consumer->secret()->reveal(),
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
         'state'         => $stored['state']
