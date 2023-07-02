@@ -76,6 +76,38 @@ return ['/' => $auth->required(function($req, $res) {
 
 *The $callback parameter should be the path matching the path in the callback URI registered with GitHub.*
 
+### Authentication via Office 365 Azure AD:
+
+```php
+use util\Secret;
+use web\auth\SessionBased;
+use web\auth\oauth\{OAuth2Flow, BySecret, ByCertificate};
+use web\session\ForTesting;
+
+// Depending on what you have set up under "Certificates & Secrets", use one
+// of the following. For certificate-based authentication, $privateKey can
+// hold either the key's contents or reference it as 'file://private.key'
+$credentials= new BySecret('[APP-ID]', new Secret('...'));
+$credentials= new ByCertificate('[APP-ID]', '[THUMBPRINT]', $privateKey);
+
+$flow= new OAuth2Flow(
+  'https://login.microsoftonline.com/[TENANT_ID]/oauth2/v2.0/authorize',
+  'https://login.microsoftonline.com/[TENANT_ID]/oauth2/v2.0/token',
+  $credentials,
+  $callback,
+  ['openid', 'profile', 'offline_access', 'User.Read']
+);
+$auth= new SessionBased($flow, new ForTesting(), function($client) {
+  return $client->fetch('https://graph.microsoft.com/v1.0/me')->value();
+});
+
+return ['/' => $auth->required(function($req, $res) {
+  $res->send('Hello @'.$req->value('user')['login'], 'text/plain');
+})];
+```
+
+*The $callback parameter should be the path matching the path in the callback URI registered with the Azure AD application.*
+
 ### Authentication via [CAS](https://apereo.github.io/cas) ("Central Authentication Service"):
 
 ```php
