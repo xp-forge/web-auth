@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.5.0 / 2023-07-02
+
+* Merged PR #24: Implement certificate-based OAuth2 flow - @thekid
 * Merged PR #23: Migrate to new testing library - @thekid
 
 ## 3.4.1 / 2022-11-23
