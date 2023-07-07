@@ -11,11 +11,11 @@ class OAuth2Backend {
   /**
    * Creates a new OAuth 2 backend
    *
-   * @param  string|util.URI $endpoint
+   * @param  string|util.URI|peer.http.HttpConnection $endpoint
    * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $credentials
    */
   public function __construct($endpoint, $credentials) {
-    $this->conn= new HttpConnection($endpoint);
+    $this->conn= $endpoint instanceof HttpConnection ? $endpoint : new HttpConnection($endpoint);
 
     // BC: Support web.auth.oauth.Token instances
     if ($credentials instanceof Credentials) {
