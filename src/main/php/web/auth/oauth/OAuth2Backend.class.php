@@ -16,7 +16,7 @@ class OAuth2Backend {
    */
   public function __construct($endpoint, $credentials= null) {
     $this->conn= $endpoint instanceof HttpConnection ? $endpoint : new HttpConnection($endpoint);
-    $credentials && $this->using($credentials);
+    $this->using($credentials ?? Credentials::$UNSET);
   }
 
   /**
