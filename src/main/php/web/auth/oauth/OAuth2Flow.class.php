@@ -23,7 +23,10 @@ class OAuth2Flow extends Flow {
    */
   public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
-    $this->backend= $tokens instanceof OAuth2Backend ? $tokens : new OAuth2Backend($tokens, $consumer);
+    $this->backend= $tokens instanceof OAuth2Backend
+      ? $tokens->using($consumer)
+      : new OAuth2Backend($tokens, $consumer)
+    ;
 
     // BC: Support deprecated constructor signature without callback
     if (is_array($callback) || null === $callback) {

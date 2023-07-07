@@ -12,19 +12,28 @@ class OAuth2Backend {
    * Creates a new OAuth 2 backend
    *
    * @param  string|util.URI|peer.http.HttpConnection $endpoint
-   * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $credentials
+   * @param  ?web.auth.oauth.Credentials|(string|util.Secret)[] $credentials
    */
-  public function __construct($endpoint, $credentials) {
+  public function __construct($endpoint, $credentials= null) {
     $this->conn= $endpoint instanceof HttpConnection ? $endpoint : new HttpConnection($endpoint);
+    $credentials && $this->using($credentials);
+  }
 
-    // BC: Support web.auth.oauth.Token instances
+  /**
+   * Specifies credentials to use
+   *
+   * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $credentials
+   * @return self
+   */
+  public function using($credentials) {
     if ($credentials instanceof Credentials) {
       $this->credentials= $credentials;
-    } else if ($credentials instanceof Token) {
+    } else if ($credentials instanceof Token) { // BC
       $this->credentials= new BySecret($credentials->key()->reveal(), $credentials->secret());
     } else {
       $this->credentials= new BySecret(...$credentials);
     }
+    return $this;
   }
 
   /**

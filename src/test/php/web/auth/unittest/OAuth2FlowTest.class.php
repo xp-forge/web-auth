@@ -173,7 +173,7 @@ class OAuth2FlowTest extends FlowTest {
   public function passes_client_id_and_secret() {
     $credentials= new BySecret('client-id', 'secret');
     $state= 'SHAREDSTATE';
-    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS, $credentials], [
+    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS], [
       'request' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
@@ -191,7 +191,7 @@ class OAuth2FlowTest extends FlowTest {
   public function passes_client_id_assertion_and_rs256_jwt() {
     $credentials= new ByCertificate('client-id', self::FINGERPRINT, $this->newPrivateKey());
     $state= 'SHAREDSTATE';
-    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS, $credentials], [
+    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS], [
       'request' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
@@ -210,7 +210,7 @@ class OAuth2FlowTest extends FlowTest {
   public function gets_access_token_and_redirects_to_self() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
-    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS, self::CONSUMER], [
+    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS], [
       'request' => function($payload) use($token) { return $token; }
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
@@ -226,7 +226,7 @@ class OAuth2FlowTest extends FlowTest {
   public function gets_access_token_and_redirects_to_self_with_fragment($fragment) {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
-    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS, self::CONSUMER], [
+    $tokens= newinstance(OAuth2Backend::class, [self::TOKENS], [
       'request' => function($payload) use($token) { return $token; }
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
