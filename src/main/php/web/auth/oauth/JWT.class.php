@@ -6,6 +6,7 @@ use lang\IllegalStateException;
  * Very simple JWT implementation (only supporting `RS256`)
  *
  * @see  https://tools.ietf.org/html/rfc7519
+ * @see  https://developer.okta.com/blog/2019/02/04/create-and-verify-jwts-in-php
  * @ext  openssl
  */
 class JWT {
