@@ -16,16 +16,16 @@ class OAuth2Flow extends Flow {
    * Creates a new OAuth 2 flow
    *
    * @param  string|util.URI $auth
-   * @param  string|util.URI|web.auth.oauth.OAuth2Backend $tokens
+   * @param  string|util.URI|web.auth.oauth.OAuth2Endpoint $tokens
    * @param  ?web.auth.oauth.Credentials|(string|util.Secret)[] $consumer
    * @param  string|util.URI $callback
    * @param  string[] $scopes
    */
   public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
-    $this->backend= $tokens instanceof OAuth2Backend
+    $this->backend= $tokens instanceof OAuth2Endpoint
       ? $tokens->using($consumer)
-      : new OAuth2Backend($tokens, $consumer)
+      : new OAuth2Endpoint($tokens, $consumer)
     ;
 
     // BC: Support deprecated constructor signature without callback

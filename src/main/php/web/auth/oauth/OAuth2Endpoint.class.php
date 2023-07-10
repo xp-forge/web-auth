@@ -4,7 +4,7 @@ use peer\http\HttpConnection;
 use lang\IllegalStateException;
 use io\streams\Streams;
 
-class OAuth2Backend {
+class OAuth2Endpoint {
   private $conn, $credentials;
   private $headers= [];
 
