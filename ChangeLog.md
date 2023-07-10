@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.6.0 / 2023-07-10
+
+* Merged PR #25: Extract OAuth 2 backend interaction into dedicated class
+  (@thekid)
+
 ## 3.5.0 / 2023-07-02
 
 * Merged PR #24: Implement certificate-based OAuth2 flow - @thekid
