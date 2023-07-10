@@ -4,7 +4,7 @@ use lang\IllegalStateException;
 use test\verify\Runtime;
 use test\{Assert, Expect, Test, TestCase, Values};
 use util\URI;
-use web\auth\oauth\{Client, BySecret, ByCertificate, Token, OAuth2Flow};
+use web\auth\oauth\{Client, BySecret, ByCertificate, Token, OAuth2Flow, OAuth2Endpoint};
 use web\auth\{UseCallback, UseRequest, UseURL};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -173,9 +173,10 @@ class OAuth2FlowTest extends FlowTest {
   public function passes_client_id_and_secret() {
     $credentials= new BySecret('client-id', 'secret');
     $state= 'SHAREDSTATE';
-    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
-      'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
     ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
 
@@ -190,9 +191,10 @@ class OAuth2FlowTest extends FlowTest {
   public function passes_client_id_assertion_and_rs256_jwt() {
     $credentials= new ByCertificate('client-id', self::FINGERPRINT, $this->newPrivateKey());
     $state= 'SHAREDSTATE';
-    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, $credentials, self::CALLBACK], [
-      'token' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use(&$passed) { $passed= $payload; /* Not implemented */ }
     ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
 
@@ -208,9 +210,10 @@ class OAuth2FlowTest extends FlowTest {
   public function gets_access_token_and_redirects_to_self() {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
-    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK], [
-      'token' => function($payload) use($token) { return $token; }
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use($token) { return $token; }
     ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
 
@@ -223,9 +226,10 @@ class OAuth2FlowTest extends FlowTest {
   public function gets_access_token_and_redirects_to_self_with_fragment($fragment) {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
     $state= 'SHAREDSTATE';
-    $fixture= newinstance(OAuth2Flow::class, [self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK], [
-      'token' => function($payload) use($token) { return $token; }
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use($token) { return $token; }
     ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
     $session->register(OAuth2Flow::SESSION_KEY, ['state' => $state, 'target' => self::SERVICE]);
 
