@@ -95,4 +95,16 @@ class UserInfoTest {
     });
     $fixture($this->responding(200, ['Content-Type' => 'text/plain'], '...'));
   }
+
+  #[Test]
+  public function peek_function_executed() {
+    $invoked= [];
+    $fixture= (new UserInfo(self::ENDPOINT))->peek(function($user, $client) use(&$invoked) {
+      $invoked[]= [$user, $client instanceof Client];
+    });
+    $user= $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'));
+
+    Assert::equals(['id' => 6100], $user);
+    Assert::equals([[['id' => 6100], true]], $invoked);
+  }
 }

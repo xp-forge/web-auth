@@ -33,6 +33,20 @@ class UserInfo {
   }
 
   /**
+   * Peeks into the given results. Useful for debugging.
+   *
+   * @param  (function(var): void)|(function(var, web.auth.oauth.Client): void) $function
+   * @return self
+   */
+  public function peek(callable $function) {
+    $this->map[]= function($value, $client) use($function) {
+      $function($value, $client);
+      return $value;
+    };
+    return $this;
+  }
+
+  /**
    * Fetches the user info and maps the returned value.
    * 
    * @param  web.auth.oauth.Client $client
