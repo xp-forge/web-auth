@@ -1,6 +1,7 @@
 <?php namespace web\auth\unittest;
 
 use io\streams\MemoryInputStream;
+use lang\IllegalStateException;
 use peer\http\HttpResponse;
 use test\{Assert, Expect, Test, Values};
 use web\auth\AuthenticationError;
@@ -85,5 +86,13 @@ class UserInfoTest {
       ['user' => ['id' => 6100], 'token' => 'TOKEN'],
       $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
     );
+  }
+
+  #[Test, Expect(AuthenticationError::class)]
+  public function map_wraps_invocation_exceptions() {
+    $fixture= (new UserInfo(self::ENDPOINT))->map(function($user, $client) {
+      throw new IllegalStateException('Test');
+    });
+    $fixture($this->responding(200, ['Content-Type' => 'text/plain'], '...'));
   }
 }

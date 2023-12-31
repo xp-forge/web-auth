@@ -1,6 +1,6 @@
 <?php namespace web\auth\oauth;
 
-use Iterator;
+use Iterator, Throwable;
 use web\auth\AuthenticationError;
 
 /**
@@ -45,11 +45,15 @@ class UserInfo {
       throw new AuthenticationError('Unexpected status '.$response->status().' from '.$this->endpoint);
     }
 
-    $value= $response->value();
-    foreach ($this->map as $function) {
-      $result= $function($value, $client);
-      $value= $result instanceof Iterator ? iterator_to_array($result) : $result;
+    try {
+      $value= $response->value();
+      foreach ($this->map as $function) {
+        $result= $function($value, $client);
+        $value= $result instanceof Iterator ? iterator_to_array($result) : $result;
+      }
+      return $value;
+    } catch (Throwable $t) {
+      throw new AuthenticationError('Invoking mappers: '.$t->getMessage(), $t);
     }
-    return $value;
   }
 }
