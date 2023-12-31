@@ -1,7 +1,7 @@
 <?php namespace web\auth\oauth;
 
 use Iterator;
-use peer\AuthenticationException;
+use web\auth\AuthenticationError;
 
 /**
  * Retrieves details about the authenticated user from a given endpoint.
@@ -37,15 +37,12 @@ class UserInfo {
    * 
    * @param  web.auth.oauth.Client $client
    * @return var
-   * @throws peer.AuthenticationException
+   * @throws web.auth.AuthenticationError
    */
   public function __invoke($client) {
     $response= $client->fetch($this->endpoint);
     if ($response->status() >= 400) {
-      throw new AuthenticationException(
-        'Unexpected status '.$response->status().' from '.$this->endpoint,
-        self::class
-      );
+      throw new AuthenticationError('Unexpected status '.$response->status().' from '.$this->endpoint);
     }
 
     $value= $response->value();

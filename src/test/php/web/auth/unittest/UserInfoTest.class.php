@@ -1,9 +1,9 @@
 <?php namespace web\auth\unittest;
 
 use io\streams\MemoryInputStream;
-use peer\AuthenticationException;
 use peer\http\HttpResponse;
 use test\{Assert, Expect, Test, Values};
+use web\auth\AuthenticationError;
 use web\auth\oauth\{UserInfo, Client, Response};
 
 class UserInfoTest {
@@ -46,7 +46,7 @@ class UserInfoTest {
     );
   }
 
-  #[Test, Expect(AuthenticationException::class), Values([[400, 'Bad Request'], [500, 'Internal Server Error']])]
+  #[Test, Expect(AuthenticationError::class), Values([[400, 'Bad Request'], [500, 'Internal Server Error']])]
   public function fetch_raises_exception_when_endpoint_fails($status, $message) {
     $fixture= new UserInfo(self::ENDPOINT);
     $fixture($this->responding($status, ['Content-Type' => 'text/plain'], $message));
