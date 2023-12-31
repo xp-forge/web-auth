@@ -13,6 +13,7 @@ class UserInfoTest {
   public function responding(int $status, array $headers, string $payload): Client {
     return newinstance(Client::class, [], [
       'authorize' => function($request) { return $request; },
+      'token'     => function() { return 'TOKEN'; },
       'fetch'     => function($url, $options= []) use($status, $headers, $payload) {
         $message= "HTTP/1.1 {$status} ...\r\n";
         foreach ($headers + ['Content-Length' => strlen($payload)] as $name => $value) {
@@ -71,6 +72,17 @@ class UserInfoTest {
     ;
     Assert::equals(
       ['second' => ['first' => ['id' => 6100]], 'aggregated' => true],
+      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
+    );
+  }
+
+  #[Test]
+  public function map_functions_have_access_to_client() {
+    $fixture= (new UserInfo(self::ENDPOINT))->map(function($user, $client) {
+      return ['user' => $user, 'token' => $client->token()];
+    });
+    Assert::equals(
+      ['user' => ['id' => 6100], 'token' => 'TOKEN'],
       $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
     );
   }

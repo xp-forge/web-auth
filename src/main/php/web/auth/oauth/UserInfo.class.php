@@ -24,7 +24,7 @@ class UserInfo {
   /**
    * Maps the user info using the given the function.
    *
-   * @param  function(var): var $function
+   * @param  (function(var): var)|(function(var, web.auth.oauth.Client): var) $function
    * @return self
    */
   public function map(callable $function) {
@@ -50,7 +50,7 @@ class UserInfo {
 
     $value= $response->value();
     foreach ($this->map as $function) {
-      $result= $function($value);
+      $result= $function($value, $client);
       $value= $result instanceof Iterator ? iterator_to_array($result) : $result;
     }
     return $value;
