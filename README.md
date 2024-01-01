@@ -41,9 +41,11 @@ $flow= new OAuth1Flow(
   [$credentials->named('twitter_oauth_key'), $credentials->named('twitter_oauth_secret')],
   $callback
 );
-$auth= new SessionBased($flow, new ForTesting(), function($client) {
-  return $client->fetch('https://api.twitter.com/1.1/account/verify_credentials.json')->value();
-});
+$auth= new SessionBased(
+  $flow,
+  new ForTesting(),
+  $flow->fetchUser('https://api.twitter.com/1.1/account/verify_credentials.json')
+);
 
 return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['screen_name'], 'text/plain');
@@ -65,9 +67,11 @@ $flow= new OAuth2Flow(
   [$credentials->named('github_oauth_key'), $credentials->named('github_oauth_secret')],
   $callback
 );
-$auth= new SessionBased($flow, new ForTesting(), function($client) {
-  return $client->fetch('https://api.github.com/user')->value();
-});
+$auth= new SessionBased(
+  $flow,
+  new ForTesting(),
+  $flow->fetchUser('https://api.github.com/user')
+);
 
 return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/plain');
@@ -97,9 +101,11 @@ $flow= new OAuth2Flow(
   $callback,
   ['openid', 'profile', 'offline_access', 'User.Read']
 );
-$auth= new SessionBased($flow, new ForTesting(), function($client) {
-  return $client->fetch('https://graph.microsoft.com/v1.0/me')->value();
-});
+$auth= new SessionBased(
+  $flow,
+  new ForTesting(),
+  $flow->fetchUser('https://graph.microsoft.com/v1.0/me')
+);
 
 return ['/' => $auth->required(function($req, $res) {
   $res->send('Hello @'.$req->value('user')['login'], 'text/plain');
