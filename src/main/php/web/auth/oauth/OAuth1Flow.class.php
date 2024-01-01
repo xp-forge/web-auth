@@ -8,7 +8,7 @@ use util\URI;
 class OAuth1Flow extends OAuthFlow {
   const SESSION_KEY= 'oauth1::flow';
 
-  private $service, $signature, $callback;
+  private $service, $signature;
 
   /**
    * Creates a new OAuth 1 flow
@@ -37,9 +37,6 @@ class OAuth1Flow extends OAuthFlow {
       $this->callback= $callback instanceof URI ? $callback : new URI($callback);
     }
   }
-
-  /** @return ?util.URI */
-  public function callback() { return $this->callback; }
 
   /**
    * Obtain a request token

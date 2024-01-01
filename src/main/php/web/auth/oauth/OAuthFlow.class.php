@@ -3,6 +3,10 @@
 use web\auth\{Flow, UserInfo, AuthenticationError};
 
 abstract class OAuthFlow extends Flow {
+  protected $callback;
+
+  /** @return ?util.URI */
+  public function callback() { return $this->callback; }
 
   /**
    * Returns user info which fetched from the given endpoint using the
