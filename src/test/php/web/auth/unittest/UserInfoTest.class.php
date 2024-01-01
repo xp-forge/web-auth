@@ -9,6 +9,31 @@ class UserInfoTest {
 
   private $returned;
 
+
+  /** @return iterable */
+  private function mappers() {
+    $instance= new class() {
+      public function first($user) { return ['first' => $user]; }
+      public function second($user) { return ['second' => $user, 'aggregated' => true]; }
+    };
+    yield [
+      [$instance, 'first'],
+      [$instance, 'second']
+    ];
+    yield [
+      function($user) { return ['first' => $user]; },
+      function($user) { return ['second' => $user, 'aggregated' => true]; },
+    ];
+    yield [
+      function($user) { yield 'first' => $user; },
+      function($user) { yield 'second' => $user; yield 'aggregated' => true; },
+    ];
+    yield [
+      new class() { public function __invoke($user) { return ['first' => $user]; }},
+      new class() { public function __invoke($user) { return ['second' => $user, 'aggregated' => true]; }},
+    ];
+  }
+
   #[Before]
   public function returned() {
     $this->returned= function($source) { return $source; };
@@ -33,36 +58,9 @@ class UserInfoTest {
     $fixture(self::USER);
   }
 
-  #[Test]
-  public function map_functions_executed() {
-    $fixture= (new UserInfo($this->returned))
-      ->map(function($user) { return ['first' => $user]; })
-      ->map(function($user) { return ['second' => $user, 'aggregated' => true]; })
-    ;
-    Assert::equals(
-      ['second' => ['first' => self::USER], 'aggregated' => true],
-      $fixture(self::USER)
-    );
-  }
-
-  #[Test]
-  public function map_generators_executed() {
-    $fixture= (new UserInfo($this->returned))
-      ->map(function($user) { yield 'first' => $user; })
-      ->map(function($user) { yield 'second' => $user; yield 'aggregated' => true; })
-    ;
-    Assert::equals(
-      ['second' => ['first' => self::USER], 'aggregated' => true],
-      $fixture(self::USER)
-    );
-  }
-
-  #[Test]
-  public function map_instances_executed() {
-    $fixture= (new UserInfo($this->returned))
-      ->map(new class() { public function __invoke($user) { return ['first' => $user]; }})
-      ->map(new class() { public function __invoke($user) { return ['second' => $user, 'aggregated' => true]; }})
-    ;
+  #[Test, Values(from: 'mappers')]
+  public function map_functions_executed($first, $second) {
+    $fixture= (new UserInfo($this->returned))->map($first)->map($second);
     Assert::equals(
       ['second' => ['first' => self::USER], 'aggregated' => true],
       $fixture(self::USER)
