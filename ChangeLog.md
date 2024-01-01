@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.7.0 / 2024-01-01
+
+* Merged PR #27: Add `UserInfo` to map the returned user from a flow
+  (@thekid)
+
 ## 3.6.0 / 2023-07-10
 
 * Merged PR #25: Extract OAuth 2 backend interaction into dedicated class
