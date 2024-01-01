@@ -14,7 +14,7 @@ class UserInfoTest {
 
   #[Test]
   public function can_create_with_supplier() {
-    new UserInfo(function($source) { return $source; });
+    new UserInfo($this->returned);
   }
 
   #[Test]
@@ -71,7 +71,15 @@ class UserInfoTest {
 
   #[Test, Expect(AuthenticationError::class)]
   public function map_wraps_invocation_exceptions() {
-    $fixture= (new UserInfo($this->returned))->map(function($user, $client) {
+    $fixture= (new UserInfo($this->returned))->map(function($user, $result) {
+      throw new IllegalStateException('Test');
+    });
+    $fixture(['id' => 6100]);
+  }
+
+  #[Test, Expect(AuthenticationError::class)]
+  public function map_wraps_supplier_exceptions() {
+    $fixture= new UserInfo(function($result) {
       throw new IllegalStateException('Test');
     });
     $fixture(['id' => 6100]);
@@ -80,8 +88,8 @@ class UserInfoTest {
   #[Test]
   public function peek_function_executed() {
     $invoked= [];
-    $fixture= (new UserInfo($this->returned))->peek(function($user, $client) use(&$invoked) {
-      $invoked[]= [$user, $client];
+    $fixture= (new UserInfo($this->returned))->peek(function($user, $result) use(&$invoked) {
+      $invoked[]= [$user, $result];
     });
     $user= $fixture(['id' => 6100]);
 
