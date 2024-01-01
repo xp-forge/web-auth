@@ -4,7 +4,7 @@ use io\streams\Streams;
 use lang\IllegalStateException;
 use peer\http\HttpConnection;
 use util\{Random, Secret, URI};
-use web\auth\Flow;
+use web\auth\{Flow, UserInfo, AuthenticationError};
 use web\session\Sessions;
 
 class OAuth2Flow extends Flow {
@@ -46,6 +46,23 @@ class OAuth2Flow extends Flow {
 
   /** @return string[] */
   public function scopes() { return $this->scopes; }
+
+  /**
+   * Returns user info which fetched from the given endpoint using the
+   * authorized OAuth2 client
+   *
+   * @param  string|util.URI $endpoint
+   * @return web.auth.UserInfo
+   */
+  public function fetchUser($endpoint= null): UserInfo {
+    return new UserInfo(function(Client $client) use($endpoint) {
+      $response= $client->fetch((string)$endpoint);
+      if ($response->status() >= 400) {
+        throw new AuthenticationError('Unexpected status '.$response->status().' from '.$endpoint);
+      }
+      return $response->value();
+    });
+  }
 
   /**
    * Refreshes access token given a refresh token if necessary.

@@ -1,10 +1,12 @@
 <?php namespace web\auth\unittest;
 
+use io\streams\MemoryInputStream;
 use lang\IllegalStateException;
+use peer\http\HttpResponse;
 use test\verify\Runtime;
 use test\{Assert, Expect, Test, TestCase, Values};
 use util\URI;
-use web\auth\oauth\{Client, BySecret, ByCertificate, Token, OAuth2Flow, OAuth2Endpoint};
+use web\auth\oauth\{Client, BySecret, ByCertificate, Token, OAuth2Flow, OAuth2Endpoint, Response as OAuthResponse};
 use web\auth\{UseCallback, UseRequest, UseURL};
 use web\io\{TestInput, TestOutput};
 use web\session\ForTesting;
@@ -39,6 +41,21 @@ class OAuth2FlowTest extends FlowTest {
       $session->value(OAuth2Flow::SESSION_KEY)['state']
     );
     Assert::equals($url, $this->redirectTo($res));
+  }
+
+  /* Returns a client whose `fetch()` operation returns the given response */
+  public function responding(int $status, array $headers, string $payload): Client {
+    return newinstance(Client::class, [], [
+      'authorize' => function($request) { return $request; },
+      'token'     => function() { return 'TOKEN'; },
+      'fetch'     => function($url, $options= []) use($status, $headers, $payload) {
+        $message= "HTTP/1.1 {$status} ...\r\n";
+        foreach ($headers + ['Content-Length' => strlen($payload)] as $name => $value) {
+          $message.= "{$name}: {$value}\r\n";
+        }
+        return new OAuthResponse(new HttpResponse(new MemoryInputStream($message."\r\n".$payload)));
+      }
+    ]);
   }
 
   #[Test]
@@ -327,6 +344,28 @@ class OAuth2FlowTest extends FlowTest {
       $fixture->scopes(),
       $this->authenticate($fixture, $path, $session),
       $session
+    );
+  }
+
+  #[Test]
+  public function use_returned_client() {
+    $flow= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+    $fixture= $flow->userInfo();
+
+    Assert::instance(
+      Client::class,
+      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
+    );
+  }
+
+  #[Test]
+  public function fetch_user_info() {
+    $flow= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+    $fixture= $flow->fetchUser('http://example.com/graph/v1.0/me');
+
+    Assert::equals(
+      ['id' => 'root'],
+      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
     );
   }
 }
