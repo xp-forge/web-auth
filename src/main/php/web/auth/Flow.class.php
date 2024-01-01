@@ -29,6 +29,15 @@ abstract class Flow {
   }
 
   /**
+   * Returns a user info instance
+   *
+   * @return web.auth.UserInfo
+   */
+  public function userInfo(): UserInfo {
+    return new UserInfo(function($result) { return $result; });
+  }
+
+  /**
    * Replaces fragment by special parameter. This is really only for test
    * code, real request URIs will never have a fragment as these are a
    * purely client-side concept

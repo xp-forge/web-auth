@@ -22,16 +22,6 @@ class CasFlow extends Flow {
   }
 
   /**
-   * Returns a user info which is returned by the CAS response
-   *
-   * @param  string|util.URI $endpoint
-   * @return web.auth.UserInfo
-   */
-  public function userInfo($endpoint): UserInfo {
-    return new UserInfo(function($result) { return $result; });
-  }
-
-  /**
    * Validates a CAS ticket
    *
    * @param  string $ticket

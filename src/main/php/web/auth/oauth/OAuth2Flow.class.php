@@ -48,12 +48,13 @@ class OAuth2Flow extends Flow {
   public function scopes() { return $this->scopes; }
 
   /**
-   * Returns a user info which is fetched from the given OAuth2 client
+   * Returns user info which fetched from the given endpoint using the
+   * authorized OAuth2 client
    *
    * @param  string|util.URI $endpoint
    * @return web.auth.UserInfo
    */
-  public function userInfo($endpoint): UserInfo {
+  public function fetchUser($endpoint= null): UserInfo {
     return new UserInfo(function(Client $client) use($endpoint) {
       $response= $client->fetch((string)$endpoint);
       if ($response->status() >= 400) {
