@@ -1,7 +1,7 @@
 <?php namespace web\auth\cas;
 
 use peer\http\HttpConnection;
-use web\auth\{Flow, UserInfo};
+use web\auth\Flow;
 use web\{Cookie, Error, Filter};
 use xml\XMLFormatException;
 use xml\dom\Document;
