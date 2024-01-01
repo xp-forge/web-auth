@@ -5,6 +5,8 @@ use test\{Assert, Before, Expect, Test, Values};
 use web\auth\{UserInfo, AuthenticationError};
 
 class UserInfoTest {
+  const USER= ['id' => 6100];
+
   private $returned;
 
   #[Before]
@@ -28,7 +30,7 @@ class UserInfoTest {
     $fixture= new UserInfo(function($source) {
       throw new AuthenticationError('Internal Server Error');
     });
-    $fixture(['id' => 6100]);
+    $fixture(self::USER);
   }
 
   #[Test]
@@ -38,8 +40,8 @@ class UserInfoTest {
       ->map(function($user) { return ['second' => $user, 'aggregated' => true]; })
     ;
     Assert::equals(
-      ['second' => ['first' => ['id' => 6100]], 'aggregated' => true],
-      $fixture(['id' => 6100])
+      ['second' => ['first' => self::USER], 'aggregated' => true],
+      $fixture(self::USER)
     );
   }
 
@@ -50,8 +52,8 @@ class UserInfoTest {
       ->map(function($user) { yield 'second' => $user; yield 'aggregated' => true; })
     ;
     Assert::equals(
-      ['second' => ['first' => ['id' => 6100]], 'aggregated' => true],
-      $fixture(['id' => 6100])
+      ['second' => ['first' => self::USER], 'aggregated' => true],
+      $fixture(self::USER)
     );
   }
 
@@ -61,9 +63,11 @@ class UserInfoTest {
       return ['user' => $result->fetch(), 'token' => $result->token()];
     });
     Assert::equals(
-      ['user' => ['id' => 6100], 'token' => 'TOKEN'],
-      $fixture(new class() {
-        public function fetch() { return ['id' => 6100]; }
+      ['user' => self::USER, 'token' => 'TOKEN'],
+      $fixture(new class(self::USER) {
+        private $user;
+        public function __construct($user) { $this->user= $user; }
+        public function fetch() { return $this->user; }
         public function token() { return 'TOKEN'; }
       })
     );
@@ -74,7 +78,7 @@ class UserInfoTest {
     $fixture= (new UserInfo($this->returned))->map(function($user, $result) {
       throw new IllegalStateException('Test');
     });
-    $fixture(['id' => 6100]);
+    $fixture(self::USER);
   }
 
   #[Test, Expect(AuthenticationError::class)]
@@ -82,7 +86,7 @@ class UserInfoTest {
     $fixture= new UserInfo(function($result) {
       throw new IllegalStateException('Test');
     });
-    $fixture(['id' => 6100]);
+    $fixture(self::USER);
   }
 
   #[Test]
@@ -91,9 +95,9 @@ class UserInfoTest {
     $fixture= (new UserInfo($this->returned))->peek(function($user, $result) use(&$invoked) {
       $invoked[]= [$user, $result];
     });
-    $user= $fixture(['id' => 6100]);
+    $user= $fixture(self::USER);
 
-    Assert::equals(['id' => 6100], $user);
-    Assert::equals([[['id' => 6100], ['id' => 6100]]], $invoked);
+    Assert::equals(self::USER, $user);
+    Assert::equals([[self::USER, self::USER]], $invoked);
   }
 }
