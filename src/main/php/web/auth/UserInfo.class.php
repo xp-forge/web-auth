@@ -1,4 +1,4 @@
-<?php namespace web\auth\oauth;
+<?php namespace web\auth;
 
 use Iterator, Throwable;
 use web\auth\AuthenticationError;
@@ -9,22 +9,16 @@ use web\auth\AuthenticationError;
  * @test  web.auth.unittest.UserInfoTest
  */
 class UserInfo {
-  private $endpoint;
+  private $supplier;
   private $map= [];
 
-  /**
-   * Creates a new instance
-   *
-   * @param  string $endpoint
-   */
-  public function __construct($endpoint) {
-    $this->endpoint= $endpoint;
-  }
+  /** @param function(var): var $supplier */
+  public function __construct(callable $supplier) { $this->supplier= $supplier; }
 
   /**
    * Maps the user info using the given the function.
    *
-   * @param  (function(var): var)|(function(var, web.auth.oauth.Client): var) $function
+   * @param  (function(var): var)|(function(var, var): var) $function
    * @return self
    */
   public function map(callable $function) {
@@ -35,12 +29,12 @@ class UserInfo {
   /**
    * Peeks into the given results. Useful for debugging.
    *
-   * @param  (function(var): void)|(function(var, web.auth.oauth.Client): void) $function
+   * @param  (function(var): void)|(function(var, var): void) $function
    * @return self
    */
   public function peek(callable $function) {
-    $this->map[]= function($value, $client) use($function) {
-      $function($value, $client);
+    $this->map[]= function($value, $result) use($function) {
+      $function($value, $result);
       return $value;
     };
     return $this;
@@ -49,23 +43,20 @@ class UserInfo {
   /**
    * Fetches the user info and maps the returned value.
    * 
-   * @param  web.auth.oauth.Client $client
-   * @return var
+   * @param  var $result Authentication flow result
+   * @return var The user object
    * @throws web.auth.AuthenticationError
    */
-  public function __invoke($client) {
-    $response= $client->fetch($this->endpoint);
-    if ($response->status() >= 400) {
-      throw new AuthenticationError('Unexpected status '.$response->status().' from '.$this->endpoint);
-    }
-
+  public function __invoke($result) {
     try {
-      $value= $response->value();
+      $value= ($this->supplier)($result);
       foreach ($this->map as $function) {
-        $result= $function($value, $client);
+        $result= $function($value, $result);
         $value= $result instanceof Iterator ? iterator_to_array($result) : $result;
       }
       return $value;
+    } catch (AuthenticationError $e) {
+      throw $e;
     } catch (Throwable $t) {
       throw new AuthenticationError('Invoking mappers: '.$t->getMessage(), $t);
     }

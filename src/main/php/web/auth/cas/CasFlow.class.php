@@ -1,7 +1,7 @@
 <?php namespace web\auth\cas;
 
 use peer\http\HttpConnection;
-use web\auth\Flow;
+use web\auth\{Flow, UserInfo};
 use web\{Cookie, Error, Filter};
 use xml\XMLFormatException;
 use xml\dom\Document;
@@ -19,6 +19,16 @@ class CasFlow extends Flow {
    */
   public function __construct($sso) {
     $this->sso= rtrim($sso, '/');
+  }
+
+  /**
+   * Returns a user info which is returned by the CAS response
+   *
+   * @param  string|util.URI $endpoint
+   * @return web.auth.UserInfo
+   */
+  public function userInfo($endpoint): UserInfo {
+    return new UserInfo(function($result) { return $result; });
   }
 
   /**

@@ -1,110 +1,91 @@
 <?php namespace web\auth\unittest;
 
-use io\streams\MemoryInputStream;
 use lang\IllegalStateException;
-use peer\http\HttpResponse;
-use test\{Assert, Expect, Test, Values};
-use web\auth\AuthenticationError;
-use web\auth\oauth\{UserInfo, Client, Response};
+use test\{Assert, Before, Expect, Test, Values};
+use web\auth\{UserInfo, AuthenticationError};
 
 class UserInfoTest {
-  const ENDPOINT= 'https://example.com/graph/v1.0/me';
+  private $returned;
 
-  /* Returns a client whose `fetch()` operation returns the given response */
-  public function responding(int $status, array $headers, string $payload): Client {
-    return newinstance(Client::class, [], [
-      'authorize' => function($request) { return $request; },
-      'token'     => function() { return 'TOKEN'; },
-      'fetch'     => function($url, $options= []) use($status, $headers, $payload) {
-        $message= "HTTP/1.1 {$status} ...\r\n";
-        foreach ($headers + ['Content-Length' => strlen($payload)] as $name => $value) {
-          $message.= "{$name}: {$value}\r\n";
-        }
-        return new Response(new HttpResponse(new MemoryInputStream($message."\r\n".$payload)));
-      }
-    ]);
-  }
-
-  /** @return iterable */
-  private function userResponses() {
-    yield ['application/json', '{"id":"root"}'];
-    yield ['application/json;charset=utf-8', '{"id":"root"}'];
-    yield ['application/vnd.github+json', '{"id":"root"}'];
-    yield ['application/x-www-form-urlencoded', 'id=root'];
+  #[Before]
+  public function returned() {
+    $this->returned= function($source) { return $source; };
   }
 
   #[Test]
-  public function can_create() {
-    new UserInfo(self::ENDPOINT);
+  public function can_create_with_supplier() {
+    new UserInfo(function($source) { return $source; });
   }
 
-  #[Test, Values(from: 'userResponses')]
-  public function fetch($mimeType, $payload) {
-    $fixture= new UserInfo(self::ENDPOINT);
-    Assert::equals(
-      ['id' => 'root'],
-      $fixture($this->responding(200, ['Content-Type' => $mimeType], $payload))
-    );
+  #[Test]
+  public function fetch() {
+    $fixture= new UserInfo($this->returned);
+    Assert::equals(['id' => 'root'], $fixture(['id' => 'root']));
   }
 
-  #[Test, Expect(AuthenticationError::class), Values([[400, 'Bad Request'], [500, 'Internal Server Error']])]
-  public function fetch_raises_exception_when_endpoint_fails($status, $message) {
-    $fixture= new UserInfo(self::ENDPOINT);
-    $fixture($this->responding($status, ['Content-Type' => 'text/plain'], $message));
+  #[Test, Expect(AuthenticationError::class)]
+  public function fetch_raises_exception_when_endpoint_fails() {
+    $fixture= new UserInfo(function($source) {
+      throw new AuthenticationError('Internal Server Error');
+    });
+    $fixture(['id' => 6100]);
   }
 
   #[Test]
   public function map_functions_executed() {
-    $fixture= (new UserInfo(self::ENDPOINT))
+    $fixture= (new UserInfo($this->returned))
       ->map(function($user) { return ['first' => $user]; })
       ->map(function($user) { return ['second' => $user, 'aggregated' => true]; })
     ;
     Assert::equals(
       ['second' => ['first' => ['id' => 6100]], 'aggregated' => true],
-      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
+      $fixture(['id' => 6100])
     );
   }
 
   #[Test]
   public function map_generators_executed() {
-    $fixture= (new UserInfo(self::ENDPOINT))
+    $fixture= (new UserInfo($this->returned))
       ->map(function($user) { yield 'first' => $user; })
       ->map(function($user) { yield 'second' => $user; yield 'aggregated' => true; })
     ;
     Assert::equals(
       ['second' => ['first' => ['id' => 6100]], 'aggregated' => true],
-      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
+      $fixture(['id' => 6100])
     );
   }
 
   #[Test]
-  public function map_functions_have_access_to_client() {
-    $fixture= (new UserInfo(self::ENDPOINT))->map(function($user, $client) {
-      return ['user' => $user, 'token' => $client->token()];
+  public function map_functions_have_access_to_result() {
+    $fixture= (new UserInfo($this->returned))->map(function($user, $result) {
+      return ['user' => $result->fetch(), 'token' => $result->token()];
     });
     Assert::equals(
       ['user' => ['id' => 6100], 'token' => 'TOKEN'],
-      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'))
+      $fixture(new class() {
+        public function fetch() { return ['id' => 6100]; }
+        public function token() { return 'TOKEN'; }
+      })
     );
   }
 
   #[Test, Expect(AuthenticationError::class)]
   public function map_wraps_invocation_exceptions() {
-    $fixture= (new UserInfo(self::ENDPOINT))->map(function($user, $client) {
+    $fixture= (new UserInfo($this->returned))->map(function($user, $client) {
       throw new IllegalStateException('Test');
     });
-    $fixture($this->responding(200, ['Content-Type' => 'text/plain'], '...'));
+    $fixture(['id' => 6100]);
   }
 
   #[Test]
   public function peek_function_executed() {
     $invoked= [];
-    $fixture= (new UserInfo(self::ENDPOINT))->peek(function($user, $client) use(&$invoked) {
-      $invoked[]= [$user, $client instanceof Client];
+    $fixture= (new UserInfo($this->returned))->peek(function($user, $client) use(&$invoked) {
+      $invoked[]= [$user, $client];
     });
-    $user= $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":6100}'));
+    $user= $fixture(['id' => 6100]);
 
     Assert::equals(['id' => 6100], $user);
-    Assert::equals([[['id' => 6100], true]], $invoked);
+    Assert::equals([[['id' => 6100], ['id' => 6100]]], $invoked);
   }
 }
