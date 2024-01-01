@@ -58,6 +58,18 @@ class UserInfoTest {
   }
 
   #[Test]
+  public function map_instances_executed() {
+    $fixture= (new UserInfo($this->returned))
+      ->map(new class() { public function __invoke($user) { return ['first' => $user]; }})
+      ->map(new class() { public function __invoke($user) { return ['second' => $user, 'aggregated' => true]; }})
+    ;
+    Assert::equals(
+      ['second' => ['first' => self::USER], 'aggregated' => true],
+      $fixture(self::USER)
+    );
+  }
+
+  #[Test]
   public function map_functions_have_access_to_result() {
     $fixture= (new UserInfo($this->returned))->map(function($user, $result) {
       return ['user' => $result->fetch(), 'token' => $result->token()];
