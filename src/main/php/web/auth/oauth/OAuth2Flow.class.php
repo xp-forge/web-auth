@@ -6,6 +6,7 @@ use peer\http\HttpConnection;
 use util\{Random, Secret, URI};
 use web\session\Sessions;
 
+/** @test web.auth.unittest.OAuth2FlowTest */
 class OAuth2Flow extends OAuthFlow {
   const SESSION_KEY= 'oauth2::flow';
 

@@ -5,6 +5,7 @@ use lang\IllegalStateException;
 use peer\http\HttpConnection;
 use util\URI;
 
+/** @test web.auth.unittest.OAuth1FlowTest */
 class OAuth1Flow extends OAuthFlow {
   const SESSION_KEY= 'oauth1::flow';
 
