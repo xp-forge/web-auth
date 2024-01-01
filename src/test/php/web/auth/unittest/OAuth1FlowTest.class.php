@@ -9,6 +9,8 @@ use web\session\ForTesting;
 use web\{Request, Response};
 
 class OAuth1FlowTest extends FlowTest {
+  use Clients;
+
   const AUTH     = 'https://example.com/oauth';
   const ID       = 'bf396750';
   const SECRET   = '5ebe2294ecd0e0f08eab7690d2a6ee69';
@@ -146,6 +148,28 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals(
       sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode('http://localhost'.$path)),
       $this->redirectTo($this->authenticate($fixture, $path, $session))
+    );
+  }
+
+  #[Test]
+  public function use_returned_client() {
+    $flow= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+    $fixture= $flow->userInfo();
+
+    Assert::instance(
+      Client::class,
+      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
+    );
+  }
+
+  #[Test]
+  public function fetch_user_info() {
+    $flow= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
+    $fixture= $flow->fetchUser('http://example.com/graph/v1.0/me');
+
+    Assert::equals(
+      ['id' => 'root'],
+      $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
     );
   }
 }

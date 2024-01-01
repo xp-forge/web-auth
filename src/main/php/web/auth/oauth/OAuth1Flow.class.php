@@ -4,10 +4,9 @@ use io\streams\Streams;
 use lang\IllegalStateException;
 use peer\http\HttpConnection;
 use util\URI;
-use web\auth\Flow;
 
-class OAuth1Flow extends Flow {
-  const SESSION_KEY = 'oauth1::flow';
+class OAuth1Flow extends OAuthFlow {
+  const SESSION_KEY= 'oauth1::flow';
 
   private $service, $signature, $callback;
 

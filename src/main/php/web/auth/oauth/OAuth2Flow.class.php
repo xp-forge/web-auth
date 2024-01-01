@@ -8,7 +8,7 @@ use web\auth\{Flow, UserInfo, AuthenticationError};
 use web\session\Sessions;
 
 class OAuth2Flow extends Flow {
-  const SESSION_KEY = 'oauth2::flow';
+  const SESSION_KEY= 'oauth2::flow';
 
   private $auth, $backend, $scopes, $callback, $rand;
 
