@@ -5,6 +5,7 @@ Web Authentication change log
 
 ## 3.8.0 / 2024-01-30
 
+* Added PHP 8.4 to the test matrix - @thekid
 * Made this library compatible with xp-forge/web version 4.0 - @thekid
 
 ## 3.7.0 / 2024-01-01
