@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 3.8.0 / 2024-01-30
+
+* Made this library compatible with xp-forge/web version 4.0 - @thekid
+
 ## 3.7.0 / 2024-01-01
 
 * Merged PR #27: Add `UserInfo` to map the returned user from a flow
