@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* **Heads up**: Removed deprecated *Token* class which has been replaced
+  by `web.auth.oauth.BySecret`
+  (@thekid)
+
 ## 3.8.0 / 2024-01-30
 
 * Added PHP 8.4 to the test matrix - @thekid
