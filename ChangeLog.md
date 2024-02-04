@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 4.0.0 / 2024-02-04
+
+* Implemented xp-framework/rfc#341: Drop XP <= 9 compatibility - @thekid
 * **Heads up**: Removed deprecated *Token* class which has been replaced
   by `web.auth.oauth.BySecret`
   (@thekid)
