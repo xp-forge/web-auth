@@ -3,7 +3,13 @@
 class Signature {
   private $consumer, $token;
 
-  public function __construct(BySecret $consumer, BySecret $token= null) {
+  /**
+   * Creates a new signature
+   *
+   * @param  web.auth.oauth.BySecret $consumer
+   * @param  ?web.auth.oauth.BySecret $token
+   */
+  public function __construct($consumer, $token= null) {
     $this->consumer= $consumer;
     $this->token= $token;
   }
