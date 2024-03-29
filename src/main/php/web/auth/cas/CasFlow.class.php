@@ -80,17 +80,23 @@ class CasFlow extends Flow {
     try {
       $stream= new XmlStreaming($validate->in());
       $result= $stream->next(new ValueOf([], [
-        'cas:authenticationFailure' => fn(&$self) => $self['failure']= yield new ValueOf([], [
-          '@code' => fn(&$self) => $self['code']= yield,
-          '.'     => fn(&$self) => $self['message']= trim(yield),
-        ]),
-        'cas:authenticationSuccess' => fn(&$self) => $self['user']= yield new ValueOf([], [
-          'cas:user'       => fn(&$self) => $self['username']= yield,
-          'cas:attributes' => fn(&$self) => $self+= yield new ValueOf([], [
-            '*' => fn(&$self, $name) => $self[str_replace('cas:', '', $name)]= yield,
+        'cas:authenticationFailure' => function(&$self) {
+          $self['failure']= yield new ValueOf([], [
+            '@code' => function(&$self) { $self['code']= yield; },
+            '.'     => function(&$self) { $self['message']= trim(yield); },
+          ]);
+        },
+        'cas:authenticationSuccess' => function(&$self) {
+          $self['user']= yield new ValueOf([], [
+            'cas:user'       => function(&$self) { $self['username']= yield; },
+            'cas:attributes' => function(&$self) {
+              $self+= yield new ValueOf([], ['*' => function(&$self, $name) {
+                $self[str_replace('cas:', '', $name)]= yield;
+              }]);
+            }
           ])
-        ]),
-        '*' => fn(&$self, $name) => $self[$name]= yield, 
+        },
+        '*' => function(&$self, $name) { $self[$name]= yield; }
       ]));
     } catch (Throwable $e) {
       throw new Error(500, 'UNEXPECTED: Streaming error', $e);
