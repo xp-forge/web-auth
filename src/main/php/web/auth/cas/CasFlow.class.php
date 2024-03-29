@@ -93,10 +93,10 @@ class CasFlow extends Flow {
               $self+= yield new ValueOf([], ['*' => function(&$self, $name) {
                 $self[str_replace('cas:', '', $name)]= yield;
               }]);
-            }
-          ])
+            },
+          ]);
         },
-        '*' => function(&$self, $name) { $self[$name]= yield; }
+        '*' => function(&$self, $name) { $self[$name]= yield; },
       ]));
     } catch (Throwable $e) {
       throw new Error(500, 'UNEXPECTED: Streaming error', $e);
