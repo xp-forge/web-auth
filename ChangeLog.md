@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 5.0.0 / 2024-03-29
+
+* Dropped support for PHP 7.0 - 7.3, step 1 of xp-framework/rfc#343
+  (@thekid)
 * Merged PR #28: Refactor CAS authentication flow to use address library
   (@thekid)
 
