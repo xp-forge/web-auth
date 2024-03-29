@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #28: Refactor CAS authentication flow to use address library
+  (@thekid)
+
 ## 4.2.0 / 2024-03-29
 
 * Made compatible with `xp-framework/xml` 12.0+ - @thekid
