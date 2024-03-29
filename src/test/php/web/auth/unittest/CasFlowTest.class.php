@@ -224,7 +224,7 @@ class CasFlowTest extends FlowTest {
     $this->authenticate($fixture, '/?ticket='.self::TICKET);
   }
 
-  #[Test, Expect(class: Error::class, message: '/FORMAT: Validation cannot be parsed/')]
+  #[Test, Expect(class: Error::class, message: 'UNEXPECTED: []')]
   public function shows_error_when_validation_response_not_well_formed() {
     $fixture= new class(self::SSO) extends CasFlow {
       public function validate($ticket, $service) {
