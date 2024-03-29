@@ -1,11 +1,11 @@
 <?php namespace web\auth\cas;
 
+use lang\Throwable;
 use peer\http\HttpConnection;
+use util\Objects;
+use util\address\{XmlStreaming, ValueOf};
 use web\auth\Flow;
 use web\{Cookie, Error, Filter};
-use xml\XMLFormatException;
-use xml\dom\Document;
-use xml\parser\{StreamInputSource, XMLParser};
 
 class CasFlow extends Flow {
   const SESSION_KEY = 'cas::flow';
@@ -77,29 +77,37 @@ class CasFlow extends Flow {
       throw new Error($validate->statusCode(), $validate->message());
     }
 
-    $result= new Document();
     try {
-      (new XMLParser())->withCallback($result)->parse(new StreamInputSource($validate->in()));
-    } catch (XMLFormatException $e) {
-      throw new Error(500, 'FORMAT: Validation cannot be parsed', $e);
+      $stream= new XmlStreaming($validate->in());
+      $result= $stream->next(new ValueOf([], [
+        'cas:authenticationFailure' => fn(&$self) => $self['failure']= yield new ValueOf([], [
+          '@code' => fn(&$self) => $self['code']= yield,
+          '.'     => fn(&$self) => $self['message']= trim(yield),
+        ]),
+        'cas:authenticationSuccess' => fn(&$self) => $self['user']= yield new ValueOf([], [
+          'cas:user'       => fn(&$self) => $self['username']= yield,
+          'cas:attributes' => fn(&$self) => $self+= yield new ValueOf([], [
+            '*' => fn(&$self, $name) => $self[str_replace('cas:', '', $name)]= yield,
+          ])
+        ]),
+        '*' => fn(&$self, $name) => $self[$name]= yield, 
+      ]));
+    } catch (Throwable $e) {
+      throw new Error(500, 'UNEXPECTED: Streaming error', $e);
     }
 
-    if ($failure= $result->getElementsByTagName('cas:authenticationFailure')) {
-      throw new Error(500, $failure[0]->getAttribute('code').': '.trim($failure[0]->getContent()));
-    } else if (!($success= $result->getElementsByTagName('cas:authenticationSuccess'))) {
-      throw new Error(500, 'UNEXPECTED: '.$result->getSource());
+    // Success-oriented
+    if ($user= $result['user'] ?? null) {
+      $session->register(self::SESSION_KEY, $user);
+      $session->transmit($response);
+      $this->finalize($response, $service);
+      return null;
     }
 
-    $user= ['username' => $result->getElementsByTagName('cas:user')[0]->getContent()];
-    if ($attr= $result->getElementsByTagName('cas:attributes')) {
-      foreach ($attr[0]->getChildren() as $child) {
-        $user[str_replace('cas:', '', $child->getName())]= $child->getContent();
-      }
+    if ($failure= $result['failure'] ?? null) {
+      throw new Error(500, $result['failure']['code'].': '.$result['failure']['message']);
     }
 
-    $session->register(self::SESSION_KEY, $user);
-    $session->transmit($response);
-    $this->finalize($response, $service);
-    return null;
+    throw new Error(500, 'UNEXPECTED: '.Objects::stringOf($result));
   }
 }
