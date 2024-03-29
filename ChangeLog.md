@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 4.2.0 / 2024-03-29
+
+* Made compatible with `xp-framework/xml` 12.0+ - @thekid
+
 ## 4.1.0 / 2024-03-24
 
 * Made compatible with XP 12 - @thekid
