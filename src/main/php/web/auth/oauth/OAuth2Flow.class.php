@@ -44,6 +44,12 @@ class OAuth2Flow extends OAuthFlow {
   /** @return string[] */
   public function scopes() { return $this->scopes; }
 
+  /** @param string[] $scopes */
+  public function requesting($scopes): self {
+    $this->scopes= $scopes;
+    return $this;
+  }
+
   /**
    * Refreshes access token given a refresh token if necessary.
    *

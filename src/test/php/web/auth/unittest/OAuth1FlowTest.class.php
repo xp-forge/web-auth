@@ -27,6 +27,14 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals(new URI(self::CALLBACK), (new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK))->callback());
   }
 
+  #[Test]
+  public function calling() {
+    Assert::equals(
+      new URI('/test'),
+      (new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK))->calling('/test')->callback()
+    );
+  }
+
   #[Test, Values(from: 'paths')]
   public function fetches_request_token_then_redirects_to_auth($path) {
     $request= ['oauth_token' => 'T'];

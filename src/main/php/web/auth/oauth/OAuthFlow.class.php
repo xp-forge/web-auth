@@ -1,5 +1,6 @@
 <?php namespace web\auth\oauth;
 
+use util\URI;
 use web\auth\{Flow, UserInfo, AuthenticationError};
 
 abstract class OAuthFlow extends Flow {
@@ -7,6 +8,12 @@ abstract class OAuthFlow extends Flow {
 
   /** @return ?util.URI */
   public function callback() { return $this->callback; }
+
+  /** @param ?string|util.URI $callback */
+  public function calling($callback): self {
+    $this->callback= null === $callback || $callback instanceof URI ? $callback : new URI($callback);
+    return $this;
+  }
 
   /**
    * Returns user info which fetched from the given endpoint using the
