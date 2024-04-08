@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 5.1.0 / 2024-04-08
+
+* Merged PR #29: Make callback and scopes mutable - @thekid
+
 ## 5.0.0 / 2024-03-29
 
 * Dropped support for PHP 7.0 - 7.3, step 1 of xp-framework/rfc#343
