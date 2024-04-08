@@ -52,9 +52,26 @@ class OAuth2FlowTest extends FlowTest {
   }
 
   #[Test]
+  public function calling() {
+    Assert::equals(
+      new URI('/test'),
+      (new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK))->calling('/test')->callback()
+    );
+  }
+
+  #[Test]
   public function scopes() {
     $scopes= ['user', 'profile'];
     Assert::equals($scopes, (new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK, $scopes))->scopes());
+  }
+
+  #[Test]
+  public function requesting_scopes() {
+    $scopes= ['user', 'profile'];
+    Assert::equals(
+      $scopes,
+      (new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK))->requesting($scopes)->scopes()
+    );
   }
 
   #[Test]
