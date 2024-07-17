@@ -3,7 +3,7 @@
 use util\URI;
 
 abstract class Flow {
-  const FRAGMENT = '_';
+  const FRAGMENT= '_';
 
   private $url= null;
 
