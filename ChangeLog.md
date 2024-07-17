@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #30: Make it possible to change the session namespace (OAuth)
+  (@thekid)
+
 ## 5.1.0 / 2024-04-08
 
 * Merged PR #29: Make callback and scopes mutable - @thekid
