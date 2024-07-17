@@ -4,7 +4,7 @@ use util\URI;
 use web\auth\{Flow, UserInfo, AuthenticationError};
 
 abstract class OAuthFlow extends Flow {
-  protected $callback, $namespace;
+  protected $callback;
 
   /** @return ?util.URI */
   public function callback() { return $this->callback; }
@@ -12,18 +12,6 @@ abstract class OAuthFlow extends Flow {
   /** @param ?string|util.URI $callback */
   public function calling($callback): self {
     $this->callback= null === $callback || $callback instanceof URI ? $callback : new URI($callback);
-    return $this;
-  }
-
-  /**
-   * Sets session namespace for this flow. Used to prevent conflicts
-   * in session state with multiple OAuth flows in place.
-   *
-   * @param  string $namespace
-   * @return self
-   */
-  public function namespaced($namespace) {
-    $this->namespace= $namespace;
     return $this;
   }
 

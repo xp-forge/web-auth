@@ -6,6 +6,19 @@ abstract class Flow {
   const FRAGMENT= '_';
 
   private $url= null;
+  protected $namespace;
+
+  /**
+   * Sets session namespace for this flow. Used to prevent conflicts
+   * in session state with multiple OAuth flows in place.
+   *
+   * @param  string $namespace
+   * @return self
+   */
+  public function namespaced($namespace) {
+    $this->namespace= $namespace;
+    return $this;
+  }
 
   /**
    * Targets a given URL
