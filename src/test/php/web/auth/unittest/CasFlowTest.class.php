@@ -11,6 +11,7 @@ use web\session\ForTesting;
 use web\{Error, Request, Response};
 
 class CasFlowTest extends FlowTest {
+  const SNS     = 'cas::flow';
   const SSO     = 'https://example.com/sso';
   const SERVICE = 'https://service.example.com';
   const TICKET  = 'ST-1856339-aA5Yuvrxzpv8Tau1cYQ7';
@@ -147,7 +148,29 @@ class CasFlowTest extends FlowTest {
     $this->authenticate($fixture, '/?ticket='.self::TICKET, $session);
     Assert::equals(
       ['username' => 'test'],
-      $session->value(CasFlow::SESSION_KEY)
+      $session->value(self::SNS)
+    );
+  }
+
+  #[Test, Values(['cas::flow', 'flow'])]
+  public function session_namespace($namespace) {
+    $fixture= new class(self::SSO) extends CasFlow {
+      public function validate($ticket, $service) {
+        return CasFlowTest::response('
+          <cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
+            <cas:authenticationSuccess>
+              <cas:user>test</cas:user>
+            </cas:authenticationSuccess>
+          </cas:serviceResponse>
+        ');
+      }
+    };
+    $session= (new ForTesting())->create();
+
+    $this->authenticate($fixture->namespaced($namespace), '/?ticket='.self::TICKET, $session);
+    Assert::equals(
+      ['username' => 'test'],
+      $session->value($namespace)
     );
   }
 
@@ -173,7 +196,7 @@ class CasFlowTest extends FlowTest {
     $this->authenticate($fixture, '/?ticket='.self::TICKET, $session);
     Assert::equals(
       ['username' => 'test', 'givenName' => 'John Doe', 'email' => 'jdoe@example.org'],
-      $session->value(CasFlow::SESSION_KEY)
+      $session->value(self::SNS)
     );
   }
 
@@ -183,7 +206,7 @@ class CasFlowTest extends FlowTest {
 
     $fixture= new CasFlow(self::SSO);
     $session= (new ForTesting())->create();
-    $session->register(CasFlow::SESSION_KEY, $user);
+    $session->register(self::SNS, $user);
 
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
