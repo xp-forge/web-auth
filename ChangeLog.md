@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 5.2.0 / 2024-07-17
+
+* Merged PR #31: Make it possible to change the session namespace (CAS)
+  (@thekid)
 * Merged PR #30: Make it possible to change the session namespace (OAuth)
   (@thekid)
 
