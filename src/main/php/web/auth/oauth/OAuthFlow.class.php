@@ -15,7 +15,13 @@ abstract class OAuthFlow extends Flow {
     return $this;
   }
 
-  /** @param string $namespace */
+  /**
+   * Sets session namespace for this flow. Used to prevent conflicts
+   * in session state with multiple OAuth flows in place.
+   *
+   * @param  string $namespace
+   * @return self
+   */
   public function namespaced($namespace) {
     $this->namespace= $namespace;
     return $this;
@@ -23,7 +29,7 @@ abstract class OAuthFlow extends Flow {
 
   /**
    * Returns user info which fetched from the given endpoint using the
-   * authorized OAuth2 client
+   * authorized OAuth client
    *
    * @param  string|util.URI $endpoint
    * @return web.auth.UserInfo
