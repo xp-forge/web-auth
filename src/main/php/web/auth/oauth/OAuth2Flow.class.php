@@ -8,8 +8,6 @@ use web\session\Sessions;
 
 /** @test web.auth.unittest.OAuth2FlowTest */
 class OAuth2Flow extends OAuthFlow {
-  const SESSION_KEY= 'oauth2::flow';
-
   private $auth, $backend, $scopes, $rand;
 
   /**
@@ -22,6 +20,7 @@ class OAuth2Flow extends OAuthFlow {
    * @param  string[] $scopes
    */
   public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
+    $this->namespace= 'oauth2::flow';
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
     $this->backend= $tokens instanceof OAuth2Endpoint
       ? $tokens->using($consumer)
@@ -85,13 +84,13 @@ class OAuth2Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value(self::SESSION_KEY);
+    $stored= $session->value($this->namespace);
 
     // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
     // and https://tools.ietf.org/html/rfc6749#section-5.1
     if (isset($stored['access_token'])) {
-      $session->remove(self::SESSION_KEY);
+      $session->remove($this->namespace);
       return new ByAccessToken(
         $stored['access_token'],
         $stored['token_type'] ?? 'Bearer',
@@ -114,7 +113,7 @@ class OAuth2Flow extends OAuthFlow {
         $state= $stored['state'];
       } else {
         $state= bin2hex($this->rand->bytes(16));
-        $session->register(self::SESSION_KEY, ['state' => $state, 'target' => (string)$uri]);
+        $session->register($this->namespace, ['state' => $state, 'target' => (string)$uri]);
         $session->transmit($response);
       }
 
@@ -156,7 +155,7 @@ class OAuth2Flow extends OAuthFlow {
         'redirect_uri'  => $callback,
         'state'         => $stored['state']
       ]);
-      $session->register(self::SESSION_KEY, $token);
+      $session->register($this->namespace, $token);
       $session->transmit($response);
 
       // Redirect to self, using encoded fragment if present

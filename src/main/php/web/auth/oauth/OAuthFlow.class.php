@@ -4,7 +4,7 @@ use util\URI;
 use web\auth\{Flow, UserInfo, AuthenticationError};
 
 abstract class OAuthFlow extends Flow {
-  protected $callback;
+  protected $callback, $namespace;
 
   /** @return ?util.URI */
   public function callback() { return $this->callback; }
@@ -12,6 +12,12 @@ abstract class OAuthFlow extends Flow {
   /** @param ?string|util.URI $callback */
   public function calling($callback): self {
     $this->callback= null === $callback || $callback instanceof URI ? $callback : new URI($callback);
+    return $this;
+  }
+
+  /** @param string $namespace */
+  public function namespaced($namespace) {
+    $this->namespace= $namespace;
     return $this;
   }
 

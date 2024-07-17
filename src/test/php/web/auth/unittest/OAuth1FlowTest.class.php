@@ -11,6 +11,7 @@ use web\{Request, Response};
 class OAuth1FlowTest extends FlowTest {
   use Clients;
 
+  const SNS      = 'oauth1::flow';
   const AUTH     = 'https://example.com/oauth';
   const ID       = 'bf396750';
   const SECRET   = '5ebe2294ecd0e0f08eab7690d2a6ee69';
@@ -47,7 +48,7 @@ class OAuth1FlowTest extends FlowTest {
       sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode(self::CALLBACK)),
       $this->redirectTo($this->authenticate($fixture, $path, $session))
     );
-    Assert::equals('http://localhost'.$path, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+    Assert::equals('http://localhost'.$path, $session->value(self::SNS)['target']);
   }
 
   #[Test, Values(from: 'fragments')]
@@ -62,7 +63,7 @@ class OAuth1FlowTest extends FlowTest {
       sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode(self::CALLBACK)),
       $this->redirectTo($this->authenticate($fixture, '/#'.$fragment, $session))
     );
-    Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+    Assert::equals('http://localhost/#'.$fragment, $session->value(self::SNS)['target']);
   }
 
   #[Test]
@@ -72,18 +73,18 @@ class OAuth1FlowTest extends FlowTest {
       'request' => function($path, $token= null, $params= []) use($access) { return $access; }
     ]);
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, ['oauth_token' => 'REQUEST-TOKEN', 'target' => self::SERVICE]);
+    $session->register(self::SNS, ['oauth_token' => 'REQUEST-TOKEN', 'target' => self::SERVICE]);
 
     $res= $this->authenticate($fixture, '/?oauth_token=REQUEST-TOKEN&oauth_verifier=ABC', $session);
     Assert::equals(self::SERVICE, $res->headers()['Location']);
-    Assert::equals($access, $session->value(OAuth1Flow::SESSION_KEY));
+    Assert::equals($access, $session->value(self::SNS));
   }
 
   #[Test, Expect(IllegalStateException::class)]
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, ['oauth_token' => 'REQUEST-TOKEN', 'target' => self::SERVICE]);
+    $session->register(self::SNS, ['oauth_token' => 'REQUEST-TOKEN', 'target' => self::SERVICE]);
 
     $this->authenticate($fixture, '/?oauth_token=MISMATCHED-TOKEN&oauth_verifier=ABC', $session);
   }
@@ -96,7 +97,7 @@ class OAuth1FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, $access);
+    $session->register(self::SNS, $access);
 
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
@@ -109,10 +110,10 @@ class OAuth1FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, $access);
+    $session->register(self::SNS, $access);
     $fixture->authenticate($req, $res, $session);
 
-    Assert::null($session->value(OAuth1Flow::SESSION_KEY));
+    Assert::null($session->value(self::SNS));
   }
 
   #[Test, Values(from: 'fragments')]
@@ -122,11 +123,11 @@ class OAuth1FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/?'.OAuth1Flow::FRAGMENT.'='.urlencode($fragment)));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, ['target' => 'http://localhost/']);
+    $session->register(self::SNS, ['target' => 'http://localhost/']);
 
     $fixture->authenticate($req, $res, $session);
 
-    Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+    Assert::equals('http://localhost/#'.$fragment, $session->value(self::SNS)['target']);
   }
 
   #[Test, Values(from: 'fragments')]
@@ -136,11 +137,11 @@ class OAuth1FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/?'.OAuth1Flow::FRAGMENT.'='.urlencode($fragment)));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register(OAuth1Flow::SESSION_KEY, ['target' => 'http://localhost/#original']);
+    $session->register(self::SNS, ['target' => 'http://localhost/#original']);
 
     $fixture->authenticate($req, $res, $session);
 
-    Assert::equals('http://localhost/#'.$fragment, $session->value(OAuth1Flow::SESSION_KEY)['target']);
+    Assert::equals('http://localhost/#'.$fragment, $session->value(self::SNS)['target']);
   }
 
   /** @deprecated */
@@ -179,5 +180,17 @@ class OAuth1FlowTest extends FlowTest {
       ['id' => 'root'],
       $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
     );
+  }
+
+  #[Test, Values(['oauth::flow', 'flow'])]
+  public function session_namespace($namespace) {
+    $request= ['oauth_token' => 'T'];
+    $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET], self::CALLBACK], [
+      'request' => function($path, $token= null, $params= []) use($request) { return $request; }
+    ]);
+    $session= (new ForTesting())->create();
+    $this->authenticate($fixture->namespaced($namespace), '/target', $session);
+
+    Assert::equals('http://localhost/target', $session->value($namespace)['target']);
   }
 }
