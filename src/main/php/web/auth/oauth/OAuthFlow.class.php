@@ -4,7 +4,7 @@ use util\URI;
 use web\auth\{Flow, UserInfo, AuthenticationError};
 
 abstract class OAuthFlow extends Flow {
-  protected $callback;
+  protected $callback, $namespace;
 
   /** @return ?util.URI */
   public function callback() { return $this->callback; }
@@ -16,8 +16,20 @@ abstract class OAuthFlow extends Flow {
   }
 
   /**
+   * Sets session namespace for this flow. Used to prevent conflicts
+   * in session state with multiple OAuth flows in place.
+   *
+   * @param  string $namespace
+   * @return self
+   */
+  public function namespaced($namespace) {
+    $this->namespace= $namespace;
+    return $this;
+  }
+
+  /**
    * Returns user info which fetched from the given endpoint using the
-   * authorized OAuth2 client
+   * authorized OAuth client
    *
    * @param  string|util.URI $endpoint
    * @return web.auth.UserInfo

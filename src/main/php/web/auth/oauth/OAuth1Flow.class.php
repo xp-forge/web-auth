@@ -7,8 +7,6 @@ use util\URI;
 
 /** @test web.auth.unittest.OAuth1FlowTest */
 class OAuth1Flow extends OAuthFlow {
-  const SESSION_KEY= 'oauth1::flow';
-
   private $service, $signature;
 
   /**
@@ -19,6 +17,7 @@ class OAuth1Flow extends OAuthFlow {
    * @param  string|util.URI $callback
    */
   public function __construct($service, $consumer, $callback= null) {
+    $this->namespace= 'oauth1::flow';
     $this->service= rtrim($service, '/');
 
     // BC: Support web.auth.oauth.Token instances
@@ -77,11 +76,11 @@ class OAuth1Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $state= $session->value(self::SESSION_KEY);
+    $state= $session->value($this->namespace);
 
     // We have an access token, reset state and return an authenticated session
     if (isset($state['access'])) {
-      $session->remove(self::SESSION_KEY);
+      $session->remove($this->namespace);
       return new BySignedRequests($this->signature->with(new BySecret($state['oauth_token'], $state['oauth_token_secret'])));
     }
 
@@ -93,7 +92,7 @@ class OAuth1Flow extends OAuthFlow {
         $state['target'].= '#'.$fragment;
       }
 
-      $session->register(self::SESSION_KEY, $state);
+      $session->register($this->namespace, $state);
       $session->transmit($response);
       $response->send('document.location.replace(target)', 'text/javascript');
       return null;
@@ -106,7 +105,7 @@ class OAuth1Flow extends OAuthFlow {
     $server= $request->param('oauth_token');
     if (null === $state || null === $server) {
       $token= $this->request('/request_token', null, ['oauth_callback' => $callback]);
-      $session->register(self::SESSION_KEY, $token + ['target' => (string)$uri]);
+      $session->register($this->namespace, $token + ['target' => (string)$uri]);
       $session->transmit($response);
 
       // Redirect the user to the authorization page
@@ -139,7 +138,7 @@ class OAuth1Flow extends OAuthFlow {
 
       // Back from authentication redirect, upgrade request token to access token
       $access= $this->request('/access_token', $state['oauth_token'], ['oauth_verifier' => $request->param('oauth_verifier')]);
-      $session->register(self::SESSION_KEY, $access + ['access' => true]);
+      $session->register($this->namespace, $access + ['access' => true]);
       $session->transmit($response);
 
       // Redirect to self
