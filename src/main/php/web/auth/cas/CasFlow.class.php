@@ -8,9 +8,8 @@ use web\auth\Flow;
 use web\{Cookie, Error, Filter};
 
 class CasFlow extends Flow {
-  const SESSION_KEY = 'cas::flow';
-
   private $sso;
+  private $namespace= 'cas::flow';
 
   /**
    * Creates a new instance with a given SSO base url
@@ -19,6 +18,18 @@ class CasFlow extends Flow {
    */
   public function __construct($sso) {
     $this->sso= rtrim($sso, '/');
+  }
+
+  /**
+   * Sets session namespace for this flow. Used to prevent conflicts
+   * in session state with multiple OAuth flows in place.
+   *
+   * @param  string $namespace
+   * @return self
+   */
+  public function namespaced($namespace) {
+    $this->namespace= $namespace;
+    return $this;
   }
 
   /**
@@ -44,7 +55,7 @@ class CasFlow extends Flow {
    * @return var
    */
   public function authenticate($request, $response, $session) {
-    $state= $session->value(self::SESSION_KEY);
+    $state= $session->value($this->namespace);
     if (isset($state['username'])) return $state;
 
     // If no ticket is present, redirect to SSO. Otherwise, validate ticket,
@@ -104,7 +115,7 @@ class CasFlow extends Flow {
 
     // Success-oriented
     if ($user= $result['user'] ?? null) {
-      $session->register(self::SESSION_KEY, $user);
+      $session->register($this->namespace, $user);
       $session->transmit($response);
       $this->finalize($response, $service);
       return null;
