@@ -183,8 +183,9 @@ class OAuth2FlowTest extends FlowTest {
     $session= (new ForTesting())->create();
     $session->register('oauth2::flow', ['state' => 'REUSED_STATE', 'target' => self::SERVICE]);
 
-    $this->authenticate($fixture, '/', $session);
+    $this->authenticate($fixture, '/new', $session);
     Assert::equals('REUSED_STATE', $session->value(self::SNS)['state']);
+    Assert::equals('http://localhost/new', $session->value(self::SNS)['target']);
   }
 
   #[Test]

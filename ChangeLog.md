@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 5.2.1 / 2024-11-03
+
+* Fixed OAuth2 implementation to redirect to the correct target URL when
+  reusing state from a previous authorization flow.
+  (@thekid)
+
 ## 5.2.0 / 2024-07-17
 
 * Merged PR #31: Make it possible to change the session namespace (CAS)
