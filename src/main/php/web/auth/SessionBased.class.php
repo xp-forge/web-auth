@@ -5,8 +5,9 @@ use util\Random;
 use web\auth\Authorization;
 use web\session\Sessions;
 
+/** @test web.auth.unittest.SessionBasedTest */
 class SessionBased extends Authentication {
-  const TOKEN_LENGTH = 32;
+  const TOKEN_LENGTH= 32;
 
   private static $random;
   private $flow, $sessions, $lookup;
