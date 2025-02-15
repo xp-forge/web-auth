@@ -2,7 +2,7 @@
 
 use lang\IllegalStateException;
 use test\{Assert, Test};
-use web\auth\{Flow, SessionBased};
+use web\auth\{Flow, SessionBased, Context};
 use web\io\{TestInput, TestOutput};
 use web\session\{ForTesting, ISession};
 use web\{Request, Response};
@@ -121,6 +121,18 @@ class SessionBasedTest {
   }
 
   #[Test]
+  public function passes_context() {
+    $user= ['username' => 'test'];
+
+    $auth= new SessionBased($this->authenticate($user), new ForTesting());
+    $this->handle([], $auth->required(function($req, $res) use(&$passed) {
+      $passed= $req->value('context');
+    }));
+
+    Assert::instance(Context::class, $passed);
+  }
+
+  #[Test]
   public function session_is_attached_when_redirecting() {
     $auth= new SessionBased($this->authenticate(null), newinstance(ForTesting::class, [], [
       'locate' => function($request) { return null; },
@@ -154,5 +166,46 @@ class SessionBasedTest {
     Assert::instance(ISession::class, $attached);
     Assert::equals(1, $attached->value('times'));
     Assert::equals($user, $attached->value('auth')[1]);
+  }
+
+  #[Test]
+  public function user_accessible_from_context() {
+    $user= ['username' => 'test'];
+    $passed= null;
+
+    $auth= new SessionBased($this->authenticate($user), new ForTesting());
+    $this->handle([], $auth->required(function($req, $res) use(&$passed) {
+      $passed= $req->value('context')->user();
+    }));
+
+    Assert::equals($user, $passed);
+  }
+
+  #[Test]
+  public function session_and_request_values_modified() {
+    $user= ['username' => 'test'];
+    $modified= null;
+
+    $sessions= new ForTesting();
+    $auth= new SessionBased($this->authenticate($user), $sessions);
+    $this->handle([], $auth->required(function($req, $res) use(&$modified) {
+      $req->value('context')->modify(['theme' => 'dark']);
+      $modified= $req->value('user')['theme'];
+    }));
+
+    $session= current($sessions->all());
+    Assert::equals('dark', $modified);
+    Assert::equals($user + ['theme' => 'dark'], $session->value('auth')[1]);
+  }
+
+  #[Test]
+  public function session_is_destroyed_on_logout() {
+    $sessions= new ForTesting();
+    $auth= new SessionBased($this->authenticate(['username' => 'test']), $sessions);
+    $this->handle([], $auth->required(function($req, $res) {
+      $req->value('context')->logout();
+    }));
+
+    Assert::equals([], $sessions->all());
   }
 }
