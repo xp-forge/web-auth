@@ -27,9 +27,7 @@ class BasicTest {
 
   #[Before]
   public function setUp() {
-    $this->login= function($user, $secret) {
-      return 'test' === $user && $secret->equals('secret') ? ['username' => 'test'] : null;
-    };
+    $this->login= fn($user, $secret) => 'test' === $user && $secret->equals('secret') ? ['username' => 'test'] : null;
   }
 
   #[Test]
@@ -39,9 +37,7 @@ class BasicTest {
 
   #[Test, Expect(IllegalArgumentException::class)]
   public function incorrect_parameter_types() {
-    new Basic(self::REALM, function(string $user, string $password) {
-      // ...
-    });
+    new Basic(self::REALM, fn(string $user, string $password) => null);
   }
 
   #[Test]

@@ -21,8 +21,8 @@ class UserInfoTest {
       [$instance, 'second']
     ];
     yield [
-      function($user) { return ['first' => $user]; },
-      function($user) { return ['second' => $user, 'aggregated' => true]; },
+      fn($user) => ['first' => $user],
+      fn($user) => ['second' => $user, 'aggregated' => true],
     ];
     yield [
       function($user) { yield 'first' => $user; },

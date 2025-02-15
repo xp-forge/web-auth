@@ -47,7 +47,7 @@ abstract class Flow {
    * @return web.auth.UserInfo
    */
   public function userInfo(): UserInfo {
-    return new UserInfo(function($result) { return $result; });
+    return new UserInfo(fn($result) => $result);
   }
 
   /**
