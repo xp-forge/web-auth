@@ -66,7 +66,7 @@ class SessionBased extends Authentication {
    */
   public function filter($req, $res, $invocation) {
     if ($session= $this->sessions->locate($req)) {
-      list($claims, $user)= $session->value('auth') ?? [null, $session->value('user')];
+      [$claims, $user]= $session->value('auth') ?? [null, $session->value('user')];
       $token= $session->value('token');
 
       // Refresh claims if necessary, proceed to reauthenticate if that fails.
