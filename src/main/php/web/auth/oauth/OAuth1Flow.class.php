@@ -76,7 +76,7 @@ class OAuth1Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace);
+    $stored= $session->value($this->namespace) ?? ['flow' => []];
 
     // We have an access token, reset state and return an authenticated session
     if ($token= $stored['token'] ?? null) {
@@ -108,7 +108,7 @@ class OAuth1Flow extends OAuthFlow {
     $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
 
     // Start authenticaton flow by obtaining request token and store for later use
-    if (null === $stored || null === $server) {
+    if (null === $server) {
       $token= $this->request('/request_token', null, ['oauth_callback' => $callback])['oauth_token'];
       $stored['flow'][$token]= (string)$uri;
       $session->register($this->namespace, $stored);
