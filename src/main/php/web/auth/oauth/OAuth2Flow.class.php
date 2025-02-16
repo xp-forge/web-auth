@@ -154,7 +154,7 @@ class OAuth2Flow extends OAuthFlow {
         'grant_type'    => 'authorization_code',
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
-        'state'         => $state[0]
+        'state'         => $server
       ]);
       $session->register($this->namespace, $stored);
       $session->transmit($response);
