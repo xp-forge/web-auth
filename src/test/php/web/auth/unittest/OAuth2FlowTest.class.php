@@ -37,7 +37,7 @@ class OAuth2FlowTest extends FlowTest {
       self::CONSUMER[0],
       implode('+', $scope),
       urlencode($service),
-      $session->value(self::SNS)['state']
+      array_key_last($session->value(self::SNS)['flow'])
     );
     Assert::equals($url, $this->redirectTo($res));
   }
@@ -91,7 +91,7 @@ class OAuth2FlowTest extends FlowTest {
       $this->authenticate($fixture, $path, $session),
       $session
     );
-    Assert::equals('http://localhost'.$path, $session->value(self::SNS)['target']);
+    Assert::equals('http://localhost'.$path, current($session->value(self::SNS)['flow']));
   }
 
   #[Test, Values(from: 'paths')]
@@ -105,7 +105,7 @@ class OAuth2FlowTest extends FlowTest {
       $this->authenticate($fixture, $path, $session),
       $session
     );
-    Assert::equals('http://localhost'.$path, $session->value(self::SNS)['target']);
+    Assert::equals('http://localhost'.$path, current($session->value(self::SNS)['flow']));
   }
 
   #[Test, Values(from: 'paths')]
@@ -119,7 +119,7 @@ class OAuth2FlowTest extends FlowTest {
       $this->authenticate($fixture->target(new UseRequest()), $path, $session),
       $session
     );
-    Assert::equals('http://localhost'.$path, $session->value(self::SNS)['target']);
+    Assert::equals('http://localhost'.$path, current($session->value(self::SNS)['flow']));
   }
 
   #[Test, Values(from: 'paths')]
@@ -133,7 +133,7 @@ class OAuth2FlowTest extends FlowTest {
       $this->authenticate($fixture->target(new UseURL(self::SERVICE)), $path, $session),
       $session
     );
-    Assert::equals(self::SERVICE.$path, $session->value(self::SNS)['target']);
+    Assert::equals(self::SERVICE.$path, current($session->value(self::SNS)['flow']));
   }
 
   #[Test, Values(from: 'fragments')]
@@ -147,7 +147,7 @@ class OAuth2FlowTest extends FlowTest {
       $this->authenticate($fixture, '/#'.$fragment, $session),
       $session
     );
-    Assert::equals('http://localhost/#'.$fragment, $session->value(self::SNS)['target']);
+    Assert::equals('http://localhost/#'.$fragment, current($session->value(self::SNS)['flow']));
   }
 
   #[Test, Values([[['user']], [['user', 'openid']]])]
@@ -167,7 +167,7 @@ class OAuth2FlowTest extends FlowTest {
   public function redirects_to_auth_when_previous_redirect_incomplete() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => 'PREVIOUS_STATE', 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => ['PREVIOUS_STATE' => self::SERVICE]]);
 
     $this->assertLoginWith(
       self::CALLBACK,
@@ -178,14 +178,13 @@ class OAuth2FlowTest extends FlowTest {
   }
 
   #[Test]
-  public function reuses_state_when_previous_redirect_incomplete() {
+  public function does_not_reuse_state_when_previous_redirect_incomplete() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => 'REUSED_STATE', 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => ['PREVIOUS_STATE' => self::SERVICE]]);
 
     $this->authenticate($fixture, '/new', $session);
-    Assert::equals('REUSED_STATE', $session->value(self::SNS)['state']);
-    Assert::equals('http://localhost/new', $session->value(self::SNS)['target']);
+    Assert::notEquals('PREVIOUS_STATE', array_key_last($session->value(self::SNS)['flow']));
   }
 
   #[Test]
@@ -197,7 +196,7 @@ class OAuth2FlowTest extends FlowTest {
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => $state, 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => [$state => self::SERVICE]]);
 
     $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
     Assert::equals('authorization_code', $passed['grant_type']);
@@ -215,7 +214,7 @@ class OAuth2FlowTest extends FlowTest {
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, $credentials, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => $state, 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => [$state => self::SERVICE]]);
 
     $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
     Assert::equals('authorization_code', $passed['grant_type']);
@@ -234,11 +233,28 @@ class OAuth2FlowTest extends FlowTest {
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
+    $session->register('oauth2::flow', ['flow' => [$state => self::SERVICE]]);
+
+    $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
+    Assert::equals(self::SERVICE, $res->headers()['Location']);
+    Assert::equals($token, $session->value(self::SNS)['token']);
+  }
+
+  /** @deprecated */
+  #[Test]
+  public function gets_access_token_using_previous_session_layout() {
+    $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
+    $state= 'SHAREDSTATE';
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use($token) { return $token; }
+    ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
+    $session= (new ForTesting())->create();
     $session->register('oauth2::flow', ['state' => $state, 'target' => self::SERVICE]);
 
     $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
     Assert::equals(self::SERVICE, $res->headers()['Location']);
-    Assert::equals($token, $session->value(self::SNS));
+    Assert::equals($token, $session->value(self::SNS)['token']);
   }
 
   #[Test, Values(from: 'fragments')]
@@ -250,30 +266,30 @@ class OAuth2FlowTest extends FlowTest {
     ]);
     $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => $state, 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => [$state => self::SERVICE]]);
 
     $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state.OAuth2Flow::FRAGMENT.urlencode($fragment), $session);
     Assert::equals(self::SERVICE.'#'.$fragment, $res->headers()['Location']);
-    Assert::equals($token, $session->value(self::SNS));
+    Assert::equals($token, $session->value(self::SNS)['token']);
   }
 
   #[Test, Expect(IllegalStateException::class)]
   public function raises_exception_on_state_mismatch() {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['state' => 'CLIENTSTATE', 'target' => self::SERVICE]);
+    $session->register('oauth2::flow', ['flow' => ['CLIENTSTATE' => self::SERVICE]]);
 
     $this->authenticate($fixture, '/?state=SERVERSTATE&code=SERVER_CODE', $session);
   }
 
   #[Test, Values([[['access_token' => '<TOKEN>', 'token_type' => 'Bearer']], [['access_token' => '<TOKEN>']]])]
-  public function returns_client_in_final_step($response) {
+  public function returns_client_in_final_step($token) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
 
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', $response);
+    $session->register('oauth2::flow', ['token' => $token]);
 
     Assert::instance(Client::class, $fixture->authenticate($req, $res, $session));
   }
@@ -286,10 +302,10 @@ class OAuth2FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', $token);
+    $session->register('oauth2::flow', ['token' => $token]);
     $fixture->authenticate($req, $res, $session);
 
-    Assert::null($session->value(self::SNS));
+    Assert::equals([], $session->value(self::SNS));
   }
 
   #[Test]
@@ -299,7 +315,7 @@ class OAuth2FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['access_token' => '<T>']);
+    $session->register('oauth2::flow', ['token' => ['access_token' => '<T>']]);
 
     Assert::null($fixture->authenticate($req, $res, $session)->claims());
   }
@@ -311,7 +327,11 @@ class OAuth2FlowTest extends FlowTest {
     $req= new Request(new TestInput('GET', '/'));
     $res= new Response(new TestOutput());
     $session= (new ForTesting())->create();
-    $session->register('oauth2::flow', ['access_token' => '<T>', 'expires_in' => 3600, 'refresh_token' => '<R>']);
+    $session->register('oauth2::flow', ['token' => [
+      'access_token'  => '<T>',
+      'expires_in'    => 3600,
+      'refresh_token' => '<R>'
+    ]]);
 
     Assert::equals(
       ['expires' => time() + 3600, 'refresh' => '<R>'],
@@ -368,6 +388,21 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals(
       ['id' => 'root'],
       $fixture($this->responding(200, ['Content-Type' => 'application/json'], '{"id":"root"}'))
+    );
+  }
+
+  #[Test]
+  public function parallel_requests_stored() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+    $session= (new ForTesting())->create();
+
+    // Simulate parallel requests
+    $this->authenticate($fixture, '/new', $session);
+    $this->authenticate($fixture, '/favicon.ico', $session);
+
+    Assert::equals(
+      ['http://localhost/new',  'http://localhost/favicon.ico'],
+      array_values($session->value(self::SNS)['flow'])
     );
   }
 }
