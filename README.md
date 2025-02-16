@@ -80,6 +80,33 @@ return ['/' => $auth->required(function($req, $res) {
 
 *The $callback parameter should be the path matching the path in the callback URI registered with GitHub.*
 
+### Authentication via Google:
+
+```php
+use web\auth\SessionBased;
+use web\auth\oauth\OAuth2Flow;
+use web\session\ForTesting;
+
+$flow= new OAuth2Flow(
+  'https://accounts.google.com/o/oauth2/v2/auth',
+  'https://oauth2.googleapis.com/token',
+  [$credentials->named('google_oauth_key'), $credentials->named('google_oauth_secret')],
+  $callback,
+  ['https://www.googleapis.com/auth/userinfo.profile']
+);
+$auth= new SessionBased(
+  $flow,
+  new ForTesting(),
+  $flow->fetchUser('https://openidconnect.googleapis.com/v1/userinfo')
+);
+
+return ['/' => $auth->required(function($req, $res) {
+  $res->send('Hello @'.$req->value('user')['name'], 'text/plain');
+})];
+```
+
+*The $callback parameter should be the path matching the path in the callback URI registered with GitHub.*
+
 ### Authentication via Office 365 Azure AD:
 
 ```php

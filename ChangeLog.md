@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 5.3.0 / 2025-02-16
+
+* Merged PR #33: Refactor OAuth flows to handle parallel requests - @thekid
+
 ## 5.2.1 / 2024-11-03
 
 * Fixed OAuth2 implementation to redirect to the correct target URL when
