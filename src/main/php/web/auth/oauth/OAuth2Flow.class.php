@@ -84,20 +84,22 @@ class OAuth2Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace);
+    $stored= $session->value($this->namespace) ?? ['target' => []];
 
     // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
     // and https://tools.ietf.org/html/rfc6749#section-5.1
-    if (isset($stored['access_token'])) {
-      $session->remove($this->namespace);
+    if ($token= $stored['token'] ?? null) {
+      unset($stored['token']);
+      $session->register($this->namespace, $stored);
+
       return new ByAccessToken(
-        $stored['access_token'],
-        $stored['token_type'] ?? 'Bearer',
-        $stored['scope'] ?? null,
-        $stored['expires_in'] ?? null,
-        $stored['refresh_token'] ?? null,
-        $stored['id_token'] ?? null
+        $token['access_token'],
+        $token['token_type'] ?? 'Bearer',
+        $token['scope'] ?? null,
+        $token['expires_in'] ?? null,
+        $token['refresh_token'] ?? null,
+        $token['id_token'] ?? null
       );
     }
 
@@ -106,9 +108,10 @@ class OAuth2Flow extends OAuthFlow {
 
     // Start authorization flow to acquire an access token
     $server= $request->param('state');
-    if (null === $stored || null === $server) {
-      $state= $stored['state'] ?? bin2hex($this->rand->bytes(16));
-      $session->register($this->namespace, ['state' => $state, 'target' => (string)$uri]);
+    if (null === $server) {
+      $state= bin2hex($this->rand->bytes(16));
+      $stored['target'][$state]= (string)$uri;
+      $session->register($this->namespace, $stored);
       $session->transmit($response);
 
       // Redirect the user to the authorization page
@@ -140,23 +143,28 @@ class OAuth2Flow extends OAuthFlow {
 
     // Continue authorization flow
     $state= explode(self::FRAGMENT, $server);
-    if ($state[0] === $stored['state']) {
+    if ($target= $stored['target'][$state[0]] ?? null) {
+      unset($stored['target'][$state[0]]);
 
       // Exchange the auth code for an access token
-      $token= $this->backend->acquire([
+      $stored['token']= $this->backend->acquire([
         'grant_type'    => 'authorization_code',
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
-        'state'         => $stored['state']
+        'state'         => $state[0]
       ]);
-      $session->register($this->namespace, $token);
+      $session->register($this->namespace, $stored);
       $session->transmit($response);
 
       // Redirect to self, using encoded fragment if present
-      $this->finalize($response, $stored['target'].(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
+      $this->finalize($response, $target.(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
       return null;
     }
 
-    throw new IllegalStateException('Flow error, session state '.$stored['state'].' != server state '.$state[0]);
+    throw new IllegalStateException(sprintf(
+      'Flow error, unknown server state %s expecting one of %s',
+      $state[0],
+      implode(', ', array_keys($stored['target']))
+    ));
   }
 }
