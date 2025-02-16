@@ -84,7 +84,7 @@ class OAuth2Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace) ?? ['target' => []];
+    $stored= $session->value($this->namespace) ?? ['flow' => []];
 
     // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
@@ -110,7 +110,7 @@ class OAuth2Flow extends OAuthFlow {
     $server= $request->param('state');
     if (null === $server) {
       $state= bin2hex($this->rand->bytes(16));
-      $stored['target'][$state]= (string)$uri;
+      $stored['flow'][$state]= (string)$uri;
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
@@ -143,8 +143,8 @@ class OAuth2Flow extends OAuthFlow {
 
     // Continue authorization flow
     $state= explode(self::FRAGMENT, $server);
-    if ($target= $stored['target'][$state[0]] ?? null) {
-      unset($stored['target'][$state[0]]);
+    if ($target= $stored['flow'][$state[0]] ?? null) {
+      unset($stored['flow'][$state[0]]);
 
       // Exchange the auth code for an access token
       $stored['token']= $this->backend->acquire([
@@ -164,7 +164,7 @@ class OAuth2Flow extends OAuthFlow {
     throw new IllegalStateException(sprintf(
       'Flow error, unknown server state %s expecting one of %s',
       $state[0],
-      implode(', ', array_keys($stored['target']))
+      implode(', ', array_keys($stored['flow']))
     ));
   }
 }
