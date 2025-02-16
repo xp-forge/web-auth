@@ -141,9 +141,12 @@ class OAuth2Flow extends OAuthFlow {
       return null;
     }
 
-    // Continue authorization flow
+    // Continue authorization flow, handling previous session layout
     $state= explode(self::FRAGMENT, $server);
-    if ($target= $stored['flow'][$state[0]] ?? null) {
+    if (
+      ($target= $stored['flow'][$state[0]] ?? null) ||
+      (($target= $stored['target'] ?? null) && ($state[0] === $stored['state']))
+    ) {
       unset($stored['flow'][$state[0]]);
 
       // Exchange the auth code for an access token
@@ -164,7 +167,7 @@ class OAuth2Flow extends OAuthFlow {
     throw new IllegalStateException(sprintf(
       'Flow error, unknown server state %s expecting one of %s',
       $state[0],
-      implode(', ', array_keys($stored['flow']))
+      implode(', ', array_keys($stored['flow'] ?? [$stored['state'] => true]))
     ));
   }
 }
