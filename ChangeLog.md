@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 6.0.0 / 2025-05-04
+
+* Dropped support for older dependency versions - @thekid
+
 ## 5.3.0 / 2025-02-16
 
 * Merged PR #33: Refactor OAuth flows to handle parallel requests - @thekid
