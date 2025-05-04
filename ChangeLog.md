@@ -5,6 +5,7 @@ Web Authentication change log
 
 ## 6.0.0 / 2025-05-04
 
+* Added PHP 8.5 to test matrix - @thekid
 * Dropped support for older dependency versions - @thekid
 
 ## 5.3.0 / 2025-02-16
