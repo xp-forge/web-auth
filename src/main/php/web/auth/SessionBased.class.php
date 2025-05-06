@@ -59,8 +59,8 @@ class SessionBased extends Authentication {
    * Executes authentication flow. On success, the user is looked up and
    * registered in the session under a key "user".
    *
-   * @param  web.Request $request
-   * @param  web.Response $response
+   * @param  web.Request $req
+   * @param  web.Response $res
    * @param  web.filters.Invocation
    * @return var
    */
@@ -96,6 +96,10 @@ class SessionBased extends Authentication {
       $session->transmit($res);
     }
 
-    return $invocation->proceed($req->pass('user', $user)->pass('token', $token), $res);
+    $context= new SessionContext($session, $req, $res);
+    return $invocation->proceed(
+      $req->pass('context', $context)->pass('user', $user)->pass('token', $token),
+      $res
+    );
   }
 }
