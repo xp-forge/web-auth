@@ -2,6 +2,7 @@
 
 use util\URI;
 
+/** @test web.auth.unittest.FlowClassTest */
 abstract class Flow {
   const FRAGMENT= '_';
 
@@ -23,11 +24,11 @@ abstract class Flow {
   /**
    * Targets a given URL
    *
-   * @param  web.auth.URL $url
+   * @param  string|web.auth.URL $url
    * @return self
    */
-  public function target(URL $url) {
-    $this->url= $url;
+  public function target($url) {
+    $this->url= $url instanceof URL ? $url : new UseURL($url);
     return $this;
   }
 
@@ -37,7 +38,7 @@ abstract class Flow {
    * @param  bool $default
    * @return ?web.auth.URL
    */
-  public function url($default= false): URL {
+  public function url($default= false): ?URL {
     return $this->url ?? ($default ? $this->url= new UseRequest() : null);
   }
 
