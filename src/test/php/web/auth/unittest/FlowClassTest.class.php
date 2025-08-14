@@ -1,7 +1,7 @@
 <?php namespace web\auth\unittest;
 
-use web\auth\{Flow, UseRequest, UseURL};
 use test\{Assert, Test, Values};
+use web\auth\{Flow, UseRequest, UseURL};
 
 class FlowClassTest {
   const URL= 'https://example.com';
@@ -16,6 +16,12 @@ class FlowClassTest {
     };
   }
 
+  /** @return iterable */
+  private function targets() {
+    yield [new UseRequest()];
+    yield [new UseURL(self::URL)];
+  }
+
   #[Test]
   public function no_default() {
     Assert::null($this->fixture()->url());
@@ -26,7 +32,7 @@ class FlowClassTest {
     Assert::instance(UseRequest::class, $this->fixture()->url(true));
   }
 
-  #[Test, Values([new UseRequest(), new UseURL(self::URL)])]
+  #[Test, Values(from: 'targets')]
   public function target($use) {
     Assert::equals($use, $this->fixture()->target($use)->url());
   }
