@@ -23,6 +23,16 @@ class FlowClassTest {
   }
 
   #[Test]
+  public function no_namespace() {
+    Assert::null($this->fixture()->namespace);
+  }
+
+  #[Test]
+  public function namespaced() {
+    Assert::equals('test', $this->fixture()->namespaced('test')->namespace);
+  }
+
+  #[Test]
   public function no_default() {
     Assert::null($this->fixture()->url());
   }

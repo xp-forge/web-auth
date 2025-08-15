@@ -7,7 +7,7 @@ abstract class Flow {
   const FRAGMENT= '_';
 
   private $url= null;
-  protected $namespace;
+  public $namespace;
 
   /**
    * Sets session namespace for this flow. Used to prevent conflicts
