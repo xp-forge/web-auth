@@ -1,6 +1,7 @@
 <?php namespace web\auth\unittest;
 
 use test\{Assert, Test, Values};
+use util\URI;
 use web\auth\{Flow, UseRequest, UseURL};
 
 class FlowClassTest {
@@ -50,5 +51,26 @@ class FlowClassTest {
   #[Test]
   public function target_string() {
     Assert::equals(new UseURL(self::URL), $this->fixture()->target(self::URL)->url());
+  }
+
+  #[Test]
+  public function no_fragment() {
+    Assert::equals(new URI(self::URL), $this->fixture()->service(new URI(self::URL)));
+  }
+
+  #[Test]
+  public function with_fragment() {
+    Assert::equals(
+      new URI(self::URL.'?_=capabilities'),
+      $this->fixture()->service(new URI(self::URL.'#capabilities'))
+    );
+  }
+
+  #[Test]
+  public function with_params_and_fragment() {
+    Assert::equals(
+      new URI(self::URL.'?test=ok&_=capabilities'),
+      $this->fixture()->service(new URI(self::URL.'?test=ok#capabilities'))
+    );
   }
 }

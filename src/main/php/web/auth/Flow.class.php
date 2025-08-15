@@ -59,7 +59,7 @@ abstract class Flow {
    * @param  util.URI $service
    * @return util.URI
    */
-  protected function service($service) {
+  public function service($service) {
     if ($fragment= $service->fragment()) {
       return $service->using()->param(self::FRAGMENT, $fragment)->fragment(null)->create();
     } else {
