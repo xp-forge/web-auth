@@ -2,11 +2,12 @@
 
 use util\URI;
 
+/** @test web.auth.unittest.FlowClassTest */
 abstract class Flow {
   const FRAGMENT= '_';
 
   private $url= null;
-  protected $namespace;
+  public $namespace;
 
   /**
    * Sets session namespace for this flow. Used to prevent conflicts
@@ -23,11 +24,11 @@ abstract class Flow {
   /**
    * Targets a given URL
    *
-   * @param  web.auth.URL $url
+   * @param  string|web.auth.URL $url
    * @return self
    */
-  public function target(URL $url) {
-    $this->url= $url;
+  public function target($url) {
+    $this->url= $url instanceof URL ? $url : new UseURL($url);
     return $this;
   }
 
@@ -37,8 +38,8 @@ abstract class Flow {
    * @param  bool $default
    * @return ?web.auth.URL
    */
-  public function url($default= false): URL {
-    return $this->url ?? ($default ? $this->url= new UseRequest() : null);
+  public function url($default= false): ?URL {
+    return $this->url ?? ($default ? new UseRequest() : null);
   }
 
   /**
@@ -58,7 +59,7 @@ abstract class Flow {
    * @param  util.URI $service
    * @return util.URI
    */
-  protected function service($service) {
+  public function service($service) {
     if ($fragment= $service->fragment()) {
       return $service->using()->param(self::FRAGMENT, $fragment)->fragment(null)->create();
     } else {
