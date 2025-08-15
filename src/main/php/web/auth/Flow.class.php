@@ -39,7 +39,7 @@ abstract class Flow {
    * @return ?web.auth.URL
    */
   public function url($default= false): ?URL {
-    return $this->url ?? ($default ? $this->url= new UseRequest() : null);
+    return $this->url ?? ($default ? new UseRequest() : null);
   }
 
   /**
