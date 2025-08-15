@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 6.1.0 / 2025-08-15
+
+* Merged PR #34: Extend `Flow::target()` to accept strings *and* URLs
+  (@thekid)
+
 ## 6.0.0 / 2025-05-04
 
 * Added PHP 8.5 to test matrix - @thekid
