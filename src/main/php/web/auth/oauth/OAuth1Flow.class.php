@@ -76,7 +76,7 @@ class OAuth1Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace) ?? ['flow' => []];
+    $stored= $session->value($this->namespace);
 
     // We have an access token, reset state and return an authenticated session
     if ($token= $stored['token'] ?? null) {
@@ -89,27 +89,14 @@ class OAuth1Flow extends OAuthFlow {
       )));
     }
 
-    // Store fragment, then make redirection continue (see redirect() above)
     $server= $request->param('oauth_token');
-    if ($fragment= $request->param(self::FRAGMENT)) {
-      if ($t= strstr($stored['flow'][$server], '#', true)) {
-        $stored['flow'][$server]= $t.'#'.$fragment;
-      } else {
-        $stored['flow'][$server].= '#'.$fragment;
-      }
-
-      $session->register($this->namespace, $stored);
-      $session->transmit($response);
-      $response->send('document.location.replace(target)', 'text/javascript');
-      return null;
-    }
-
     $uri= $this->url(true)->resolve($request);
     $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
 
     // Start authenticaton flow by obtaining request token and store for later use
-    if (null === $server) {
+    if (null === $server || null === $stored) {
       $token= $this->request('/request_token', null, ['oauth_callback' => $callback])['oauth_token'];
+      $stored??= ['flow' => []];
       $stored['flow'][$token]= (string)$uri;
       $session->register($this->namespace, $stored);
       $session->transmit($response);
@@ -143,12 +130,24 @@ class OAuth1Flow extends OAuthFlow {
       return null;
     }
 
+    // Store fragment, then make redirection continue (see redirect() above)
+    $target= $stored['flow'][$server] ?? null;
+    if ($target && ($fragment= $request->param(self::FRAGMENT))) {
+      if ($t= strstr($stored['flow'][$server], '#', true)) {
+        $stored['flow'][$server]= $t.'#'.$fragment;
+      } else {
+        $stored['flow'][$server].= '#'.$fragment;
+      }
+
+      $session->register($this->namespace, $stored);
+      $session->transmit($response);
+      $response->send('document.location.replace(target)', 'text/javascript');
+      return null;
+    }
+
     // Back from authentication redirect, upgrade request token to access token
     // Handle previous session layout
-    if (
-      ($target= $stored['flow'][$server] ?? null) ||
-      (($target= $stored['target'] ?? null) && ($server === $stored['oauth_token']))
-    ) {
+    if ($target || (($target= $stored['target'] ?? null) && ($server === $stored['oauth_token']))) {
       unset($stored['flow'][$server]);
 
       // Back from authentication redirect, upgrade request token to access token

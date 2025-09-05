@@ -84,7 +84,7 @@ class OAuth2Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace) ?? ['flow' => []];
+    $stored= $session->value($this->namespace);
 
     // We have an access token, reset state and return an authenticated session
     // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
@@ -108,8 +108,9 @@ class OAuth2Flow extends OAuthFlow {
 
     // Start authorization flow to acquire an access token
     $server= $request->param('state');
-    if (null === $server) {
+    if (null === $server || null === $stored) {
       $state= bin2hex($this->rand->bytes(16));
+      $stored??= ['flow' => []];
       $stored['flow'][$state]= (string)$uri;
       $session->register($this->namespace, $stored);
       $session->transmit($response);

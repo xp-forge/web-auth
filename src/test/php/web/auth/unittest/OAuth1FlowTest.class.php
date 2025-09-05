@@ -90,6 +90,20 @@ class OAuth1FlowTest extends FlowTest {
   }
 
   #[Test]
+  public function redirects_when_opened_with_server_state_and_freshly_created_session() {
+    $request= ['oauth_token' => 'T'];
+    $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET], self::CALLBACK], [
+      'request' => function($path, $token= null, $params= []) use($request) { return $request; }
+    ]);
+    $session= (new ForTesting())->create();
+
+    Assert::equals(
+      sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode(self::CALLBACK)),
+      $this->redirectTo($this->authenticate($fixture, '/?oauth_token=REQUEST-TOKEN&oauth_verifier=ABC', $session))
+    );
+  }
+
+  #[Test]
   public function returns_client() {
     $access= ['oauth_token' => 'ACCESS-TOKEN', 'oauth_token_secret' => 'XYZ', 'access' => true];
     $fixture= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);
