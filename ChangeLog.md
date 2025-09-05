@@ -3,6 +3,12 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 6.1.2 / 2025-09-05
+
+* Made compatible with `xp-forge/address` 7.0+, fixing deprecation warnings
+  about *null* in array offsets in PHP 8.5+
+  (@thekid)
+
 ## 6.1.1 / 2025-09-05
 
 * Fixed OAuth (1 and 2) flows raising flow mismatches when invoked with

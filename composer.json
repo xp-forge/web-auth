@@ -8,7 +8,7 @@
   "require" : {
     "xp-framework/core": "^12.0 | ^11.0 | ^10.0",
     "xp-framework/http": "^10.0 | ^9.0",
-    "xp-forge/address": "^6.0 | ^5.3",
+    "xp-forge/address": "^7.0 | ^6.0 | ^5.3",
     "xp-forge/web": "^4.0 | ^3.0",
     "xp-forge/json": "^6.0 | ^5.0",
     "xp-forge/sessions": "^3.0 | ^2.0",
