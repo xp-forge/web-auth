@@ -282,6 +282,19 @@ class OAuth2FlowTest extends FlowTest {
     $this->authenticate($fixture, '/?state=SERVERSTATE&code=SERVER_CODE', $session);
   }
 
+  #[Test]
+  public function redirects_when_opened_with_server_state_and_freshly_created_session() {
+    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);
+    $session= (new ForTesting())->create();
+
+    $this->assertLoginWith(
+      self::CALLBACK,
+      $fixture->scopes(),
+      $this->authenticate($fixture, '/?state=SERVERSTATE&code=SERVER_CODE', $session),
+      $session
+    );
+  }
+
   #[Test, Values([[['access_token' => '<TOKEN>', 'token_type' => 'Bearer']], [['access_token' => '<TOKEN>']]])]
   public function returns_client_in_final_step($token) {
     $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);

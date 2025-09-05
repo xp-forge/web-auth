@@ -3,6 +3,14 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 6.1.1 / 2025-09-05
+
+* Fixed OAuth (1 and 2) flows raising flow mismatches when invoked with
+  server state inside a freshly created session, e.g. users having the
+  URL includìng `?state=...` bookmarked or pressing the browser's back
+  button.
+  (@thekid)
+
 ## 6.1.0 / 2025-08-15
 
 * Merged PR #34: Extend `Flow::target()` to accept strings *and* URLs
