@@ -1,6 +1,7 @@
 <?php namespace web\auth\oauth;
 
-use lang\IllegalStateException;
+use lang\{IllegalStateException, Value};
+use util\Objects;
 
 /**
  * Very simple JWT implementation (only supporting `RS256`)
@@ -10,7 +11,7 @@ use lang\IllegalStateException;
  * @test web.auth.unittest.JWTTest
  * @ext  openssl
  */
-class JWT {
+class JWT implements Value {
   const ALG= 'RS256';
 
   private $header, $payload;
@@ -118,5 +119,33 @@ class JWT {
   public static function tryFrom(?string $token, $publicKey): ?self {
     [$jwt, $err]= self::parse($token  ?? '', $publicKey);
     return $jwt;
+  }
+
+  /** @return string */
+  public function hashCode() {
+    return 'J'.md5(Objects::hashOf([$this->header, $this->payload]));
+  }
+
+  /** @return string */
+  public function toString() {
+    return (
+      nameof($this)."@{\n".
+      '  [header ] '.Objects::stringOf($this->header, '  ')."\n".
+      '  [payload] '.Objects::stringOf($this->payload, '  ')."\n".
+      '}'
+    );
+  }
+
+  /**
+   * Comparison
+   *
+   * @param  var $value
+   * @return int
+   */
+  public function compareTo($value) {
+    return $value instanceof self
+      ? Objects::compare([$this->header, $this->payload], [$value->header, $value->payload])
+      : 1
+    ;
   }
 }

@@ -138,4 +138,32 @@ class JWTTest {
   public function try_from_malformed($token, $error) {
     Assert::null(JWT::tryFrom($token, self::PUBLIC_KEY));
   }
+
+  #[Test]
+  public function hash_code() {
+    Assert::equals(
+      'J564f10427598731d1d12907d02739a78',
+      (new JWT(self::HEADER, ['iss' => self::ISSUER, 'sub' => 'test']))->hashCode()
+    );
+  }
+
+  #[Test]
+  public function string_representation() {
+    Assert::equals(
+      <<<'STRING'
+        web.auth.oauth.JWT@{
+          [header ] [
+            alg => "RS256"
+            typ => "JWT"
+          ]
+          [payload] [
+            iss => "xp-testing"
+            sub => "test"
+          ]
+        }
+        STRING
+      ,
+      (new JWT(self::HEADER, ['iss' => self::ISSUER, 'sub' => 'test']))->toString()
+    );
+  }
 }
