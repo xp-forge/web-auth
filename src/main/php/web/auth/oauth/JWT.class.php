@@ -11,11 +11,13 @@ use lang\IllegalStateException;
  * @ext  openssl
  */
 class JWT {
+  const ALG= 'RS256';
+
   private $header, $payload;
 
   /** Creates a new JWT with a given header and payload */
   public function __construct(array $header, array $payload) {
-    $this->header= ['alg' => 'RS256'] + $header;
+    $this->header= ['alg' => self::ALG] + $header;
     $this->payload= $payload;
   }
 
@@ -74,7 +76,7 @@ class JWT {
     $header= json_decode(self::decode($parts[0]), true);
     if (json_last_error()) {
       return [null, 'Header parsing error: '.json_last_error_msg()];
-    } else if ('RS256' !== ($alg= $header['alg'] ?? '(null)')) {
+    } else if (self::ALG !== ($alg= $header['alg'] ?? '(null)')) {
       return [null, 'Unsupported algorithm '.$alg];
     }
 
