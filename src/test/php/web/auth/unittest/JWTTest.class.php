@@ -61,6 +61,7 @@ class JWTTest {
 
   /** @return iterable */
   private function malformed() {
+    yield [null, '/Expected \[header\].\[payload\].\[signature\]/'];
     yield ['', '/Expected \[header\].\[payload\].\[signature\]/'];
     yield ['a.b', '/Expected \[header\].\[payload\].\[signature\]/'];
     yield ['a.b.c', '/Header parsing error/'];

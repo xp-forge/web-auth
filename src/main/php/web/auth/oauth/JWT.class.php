@@ -94,13 +94,13 @@ class JWT {
   /**
    * Parse token into a JWT, verifying its signature with the public key
    *
-   * @param  string $token
+   * @param  ?string $token
    * @param  string|OpenSSLAsymmetricKey $publicKey
    * @return self
    * @throws lang.IllegalStateException if verification fails
    */
-  public static function from(string $token, $publicKey): self {
-    [$jwt, $err]= self::parse($token, $publicKey);
+  public static function from(?string $token, $publicKey): self {
+    [$jwt, $err]= self::parse($token ?? '', $publicKey);
 
     // TODO (PHP 8): Migrate to throw expressions
     return $jwt ?? (function() use($err) { throw new IllegalStateException($err); })();
@@ -109,12 +109,12 @@ class JWT {
   /**
    * Try to parse token into a JWT and verify its signature with the public key
    *
-   * @param  string $token
+   * @param  ?string $token
    * @param  string|OpenSSLAsymmetricKey $publicKey
    * @return ?self
    */
-  public static function tryFrom(string $token, $publicKey): ?self {
-    [$jwt, $err]= self::parse($token, $publicKey);
+  public static function tryFrom(?string $token, $publicKey): ?self {
+    [$jwt, $err]= self::parse($token  ?? '', $publicKey);
     return $jwt;
   }
 }
