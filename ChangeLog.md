@@ -3,6 +3,14 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 6.2.0 / 2026-01-01
+
+* Made the `web.auth.oauth.JWT` class implement the `lang.Value` interface
+  (@thekid)
+* Merged PR #35: Add `JWT::from()` and `JWT::tryFrom()` to parse JWTs from
+  a given token
+  (@thekid)
+
 ## 6.1.2 / 2025-09-05
 
 * Made compatible with `xp-forge/address` 7.0+, fixing deprecation warnings
