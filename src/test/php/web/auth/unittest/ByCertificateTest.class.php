@@ -54,7 +54,7 @@ class ByCertificateTest {
   #[Test, Values([3600, 86400])]
   public function jwt_payload_with($validity) {
     $time= time();
-    $params= (new ByCertificate(self::CLIENT_ID, self::FINGERPRINT, $this->privateKey, $validity))->params(self::ENDPOINT, $time);
+    $params= (new ByCertificate(self::CLIENT_ID, self::FINGERPRINT, $this->privateKey, $validity))->params(self::ENDPOINT, ['time' => $time]);
     $payload= json_decode(base64_decode(explode('.', $params['client_assertion'])[1]), true);
 
     Assert::equals(

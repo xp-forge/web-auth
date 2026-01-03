@@ -20,7 +20,7 @@ class BySecret extends Credentials {
   public function secret() { return $this->secret; }
 
   /** Returns parameters to be used in authentication process */
-  public function params(string $endpoint, $time= null): array {
+  public function params(string $endpoint, array $seed= []): array {
     return [
       'client_id'     => $this->key,
       'client_secret' => $this->secret->reveal(),

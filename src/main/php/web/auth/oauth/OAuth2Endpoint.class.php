@@ -1,8 +1,8 @@
 <?php namespace web\auth\oauth;
 
-use peer\http\HttpConnection;
-use lang\IllegalStateException;
 use io\streams\Streams;
+use lang\IllegalStateException;
+use peer\http\HttpConnection;
 
 class OAuth2Endpoint {
   private $conn, $credentials;
@@ -77,13 +77,26 @@ class OAuth2Endpoint {
     }
   }
 
+  /** @return [:string] */
+  public function seed() { return $this->credentials->seed(); }
+
+  /**
+   * Returns authorization parameters
+   *
+   * @param  [:string] $grant
+   * @param  [:string] $seed
+   * @return [:string]
+   */
+  public function pass($auth, $seed= []) { return $this->credentials->pass($seed) + $auth; }
+
   /**
    * Acquires a grant
    *
    * @param  [:string] $grant
+   * @param  [:string] $seed
    * @return [:string]
    */
-  public function acquire($grant) {
-    return $this->request($this->credentials->params($this->conn->getUrl()->getCanonicalURL()) + $grant);
+  public function acquire($grant, $seed= []) {
+    return $this->request($this->credentials->params($this->conn->getUrl()->getCanonicalURL(), $seed) + $grant);
   }
 }

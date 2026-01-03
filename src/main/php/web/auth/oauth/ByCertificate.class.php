@@ -34,8 +34,8 @@ class ByCertificate extends Credentials {
   }
 
   /** Returns parameters to be used in authentication process */
-  public function params(string $endpoint, $time= null): array {
-    $time ?? $time= time();
+  public function params(string $endpoint, array $seed= []): array {
+    $time= $seed['time'] ?? time();
     $jwt= new JWT(['alg' => 'RS256', 'typ' => 'JWT', 'x5t' => JWT::encode(hex2bin($this->fingerprint))], [
       'aud' => $endpoint,
       'exp' => $time + $this->validity,
