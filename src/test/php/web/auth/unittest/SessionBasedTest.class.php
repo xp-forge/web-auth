@@ -14,11 +14,14 @@ class SessionBasedTest {
    *
    * @param  [:var] $headers
    * @param  web.Handler $handler
+   * @return web.Response
    */
   private function handle($headers, $handler) {
     $req= new Request(new TestInput('GET', '/', $headers));
     $res= new Response(new TestOutput());
-    $handler->handle($req, $res);
+
+    foreach ($handler->handle($req, $res) ?? [] as $_) { }
+    return $res;
   }
 
   private function authenticate($result) {
@@ -28,7 +31,8 @@ class SessionBasedTest {
 
         // Redirect to SSO
         $session->transmit($res);
-        $this->redirect($res, 'https://sso.example.com/', 'document.location.replace("%1$s");');
+        $res->answer(302);
+        $res->header('Location', 'https://sso.example.com/');
         return null;
       }
     ]);
@@ -37,6 +41,16 @@ class SessionBasedTest {
   #[Test]
   public function can_create() {
     new SessionBased($this->authenticate(null), new ForTesting());
+  }
+
+  #[Test]
+  public function redirects_to_sso() {
+    $auth= new SessionBased($this->authenticate(null), new ForTesting());
+    $res= $this->handle([], $auth->required(function($req, $res) use(&$user) {
+      throw new IllegalStateException('Should not be reached');
+    }));
+
+    Assert::equals('https://sso.example.com/', $res->headers()['Location']);
   }
 
   #[Test]
