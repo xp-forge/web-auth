@@ -19,16 +19,10 @@ class OAuth1Flow extends OAuthFlow {
   public function __construct($service, $consumer, $callback= '/') {
     $this->namespace= 'oauth1::flow';
     $this->service= rtrim($service, '/');
-
-    // BC: Support web.auth.oauth.Token instances
-    if ($consumer instanceof Credentials) {
-      $this->signature= new Signature($consumer);
-    } else if ($consumer instanceof Token) {
-      $this->signature= new Signature(new BySecret($consumer->key()->reveal(), $consumer->secret()));
-    } else {
-      $this->signature= new Signature(new BySecret(...$consumer));
-    }
-
+    $this->signature= new Signature($consumer instanceof Credentials
+      ? $consumer
+      : new BySecret(...$consumer)
+    );
     $this->callback= $callback instanceof URI ? $callback : new URI($callback);
   }
 
