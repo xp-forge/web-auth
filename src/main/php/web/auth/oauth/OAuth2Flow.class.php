@@ -19,24 +19,15 @@ class OAuth2Flow extends OAuthFlow {
    * @param  string|util.URI $callback
    * @param  string[] $scopes
    */
-  public function __construct($auth, $tokens, $consumer, $callback= null, $scopes= ['user']) {
+  public function __construct($auth, $tokens, $consumer, $callback= '/', $scopes= ['user']) {
     $this->namespace= 'oauth2::flow';
     $this->auth= $auth instanceof URI ? $auth : new URI($auth);
     $this->backend= $tokens instanceof OAuth2Endpoint
       ? $tokens->using($consumer)
       : new OAuth2Endpoint($tokens, $consumer)
     ;
-
-    // BC: Support deprecated constructor signature without callback
-    if (is_array($callback) || null === $callback) {
-      trigger_error('Missing parameter $callback', E_USER_DEPRECATED);
-      $this->callback= null;
-      $this->scopes= $callback ?? $scopes;
-    } else {
-      $this->callback= $callback instanceof URI ? $callback : new URI($callback);
-      $this->scopes= $scopes;
-    }
-
+    $this->callback= $callback instanceof URI ? $callback : new URI($callback);
+    $this->scopes= $scopes;
     $this->rand= new Random();
   }
 
@@ -87,9 +78,9 @@ class OAuth2Flow extends OAuthFlow {
       return ByAccessToken::from($token);
     }
 
-    // Enter authentication flow, resolving callback URI against the curren request.
+    // Enter authentication flow, resolving callback URI against the current request.
     $uri= $this->url(true)->resolve($request);
-    $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
+    $callback= $uri->resolve($this->callback);
 
     // Check whether we are continuing an existing authentication flow based on the
     // state given by the server and our session; or if we need to start a new one.

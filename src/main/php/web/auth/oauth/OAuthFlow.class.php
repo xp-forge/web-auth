@@ -15,12 +15,12 @@ abstract class OAuthFlow extends Flow {
     );
   }
 
-  /** @return ?util.URI */
+  /** @return util.URI */
   public function callback() { return $this->callback; }
 
-  /** @param ?string|util.URI $callback */
+  /** @param string|util.URI $callback */
   public function calling($callback): self {
-    $this->callback= null === $callback || $callback instanceof URI ? $callback : new URI($callback);
+    $this->callback= $callback instanceof URI ? $callback : new URI($callback);
     return $this;
   }
 

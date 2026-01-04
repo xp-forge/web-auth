@@ -375,36 +375,6 @@ class OAuth2FlowTest extends FlowTest {
     );
   }
 
-  /** @deprecated */
-  #[Test, Values(from: 'paths')]
-  public function deprecated_usage_without_callback_uri($path) {
-    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER);
-    \xp::gc();
-
-    $session= (new ForTesting())->create();
-    $this->assertLoginWith(
-      'http://localhost'.$path,
-      $fixture->scopes(),
-      $this->authenticate($fixture, $path, $session),
-      $session
-    );
-  }
-
-  /** @deprecated */
-  #[Test, Values(from: 'paths')]
-  public function deprecated_usage_with_scopes_in_place_of_callback_uri($path) {
-    $fixture= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, ['user']);
-    \xp::gc();
-
-    $session= (new ForTesting())->create();
-    $this->assertLoginWith(
-      'http://localhost'.$path,
-      $fixture->scopes(),
-      $this->authenticate($fixture, $path, $session),
-      $session
-    );
-  }
-
   #[Test]
   public function use_returned_client() {
     $flow= new OAuth2Flow(self::AUTH, self::TOKENS, self::CONSUMER, self::CALLBACK);

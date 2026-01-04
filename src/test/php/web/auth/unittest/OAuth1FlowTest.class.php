@@ -164,22 +164,6 @@ class OAuth1FlowTest extends FlowTest {
     Assert::equals(['uri' => 'http://localhost/#'.$fragment, 'seed' => []], current($session->value(self::SNS)['flows']));
   }
 
-  /** @deprecated */
-  #[Test, Values(from: 'paths')]
-  public function deprecated_usage_without_callback_uri($path) {
-    $request= ['oauth_token' => 'T'];
-    $fixture= newinstance(OAuth1Flow::class, [self::AUTH, [self::ID, self::SECRET]], [
-      'request' => function($path, $token= null, $params= []) use($request) { return $request; }
-    ]);
-    \xp::gc();
-    $session= (new ForTesting())->create();
-
-    Assert::equals(
-      sprintf('%s/authenticate?oauth_token=T&oauth_callback=%s', self::AUTH, urlencode('http://localhost'.$path)),
-      $this->redirectTo($this->authenticate($fixture, $path, $session))
-    );
-  }
-
   #[Test]
   public function use_returned_client() {
     $flow= new OAuth1Flow(self::AUTH, [self::ID, self::SECRET], self::CALLBACK);

@@ -16,7 +16,7 @@ class OAuth1Flow extends OAuthFlow {
    * @param  web.auth.oauth.Credentials|(string|util.Secret)[] $consumer
    * @param  string|util.URI $callback
    */
-  public function __construct($service, $consumer, $callback= null) {
+  public function __construct($service, $consumer, $callback= '/') {
     $this->namespace= 'oauth1::flow';
     $this->service= rtrim($service, '/');
 
@@ -29,13 +29,7 @@ class OAuth1Flow extends OAuthFlow {
       $this->signature= new Signature(new BySecret(...$consumer));
     }
 
-    // BC: Support deprecated constructor signature without callback
-    if (null === $callback) {
-      trigger_error('Missing parameter $callback', E_USER_DEPRECATED);
-      $this->callback= null;
-    } else {
-      $this->callback= $callback instanceof URI ? $callback : new URI($callback);
-    }
+    $this->callback= $callback instanceof URI ? $callback : new URI($callback);
   }
 
   /**
@@ -90,9 +84,9 @@ class OAuth1Flow extends OAuthFlow {
       )));
     }
 
-    // Enter authentication flow, resolving callback URI against the curren request.
+    // Enter authentication flow, resolving callback URI against the current request.
     $uri= $this->url(true)->resolve($request);
-    $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
+    $callback= $uri->resolve($this->callback);
 
     // Check whether we are continuing an existing authentication flow based on the
     // state given by the server and our session; or if we need to start a new one.

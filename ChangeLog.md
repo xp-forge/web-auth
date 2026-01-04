@@ -5,6 +5,9 @@ Web Authentication change log
 
 ## 7.0.0 / ????-??-??
 
+* **Heads up:** Removed support for deprecated constructor signature without
+  callback in OAuth1 & OAuth2
+  (@thekid)
 * Changed `SessionBased` authentication to send 401 for sub-requests (e.g.
   images, fetch(), ...), implementing feature suggested in #38
   (@thekid)
