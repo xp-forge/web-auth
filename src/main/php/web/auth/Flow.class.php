@@ -4,6 +4,7 @@ use util\URI;
 
 /** @test web.auth.unittest.FlowClassTest */
 abstract class Flow {
+  const STATE= '%[^_]_%s';
   const FRAGMENT= '_';
 
   private $url= null;

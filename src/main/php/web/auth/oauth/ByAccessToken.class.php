@@ -24,6 +24,22 @@ class ByAccessToken extends Client {
     $this->id= null === $id ? null : ($id instanceof Secret ? $id : new Secret($id));
   }
 
+  /**
+   * Creates an instance resulting from access token response
+   *
+   * @see https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+   */
+  public static function from(array $result): self {
+    return new self(
+      $result['access_token'],
+      $result['token_type'] ?? 'Bearer',
+      $result['scope'] ?? null,
+      $result['expires_in'] ?? null,
+      $result['refresh_token'] ?? null,
+      $result['id_token'] ?? null
+    );
+  }
+
   /** @return util.Secret */
   public function token() { return $this->token; }
 
