@@ -3,7 +3,7 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
-## 7.0.0 / ????-??-??
+## 7.0.0 / 2026-01-04
 
 * **Heads up:** Removed support for instantiating OAuth flows w/o callback
   (@thekid)
