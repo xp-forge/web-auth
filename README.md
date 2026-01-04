@@ -112,7 +112,7 @@ return ['/' => $auth->required(function($req, $res) {
 ```php
 use util\Secret;
 use web\auth\SessionBased;
-use web\auth\oauth\{OAuth2Flow, BySecret, ByCertificate};
+use web\auth\oauth\{OAuth2Flow, BySecret, ByCertificate, ByPKCE};
 use web\session\ForTesting;
 
 // Depending on what you have set up under "Certificates & Secrets", use one
@@ -120,6 +120,7 @@ use web\session\ForTesting;
 // hold either the key's contents or reference it as 'file://private.key'
 $credentials= new BySecret('[APP-ID]', new Secret('...'));
 $credentials= new ByCertificate('[APP-ID]', '[THUMBPRINT]', $privateKey);
+$credentials= new ByPKCE('[APP-ID]', 'S256');
 
 $flow= new OAuth2Flow(
   'https://login.microsoftonline.com/[TENANT_ID]/oauth2/v2.0/authorize',
