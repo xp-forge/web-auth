@@ -1,7 +1,11 @@
 Web Authentication change log
 =============================
 
-## ?.?.? / ????-??-??
+## ?.?.? / ????-??-??s
+
+## 7.1.0 / 2026-01-04
+
+* Added support for `xp-forge/sessions` version 4.0+ - @thekid
 
 ## 7.0.0 / 2026-01-04
 

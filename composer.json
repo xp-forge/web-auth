@@ -11,7 +11,7 @@
     "xp-forge/address": "^7.0 | ^6.0 | ^5.3",
     "xp-forge/web": "^4.0 | ^3.0",
     "xp-forge/json": "^6.0 | ^5.0",
-    "xp-forge/sessions": "^3.0 | ^2.0",
+    "xp-forge/sessions": "^4.0 | ^3.0 | ^2.0",
     "php": ">=7.4.0"
   },
   "require-dev" : {
