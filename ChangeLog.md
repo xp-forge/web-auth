@@ -3,6 +3,9 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #37: Refactor OAuth1 & OAuth2 flows, fixing possible flow error
+  states and implifiying their implementation
+  (@thekid)
 * Added PHP 8.6 to the test matrix - @thekid
 * Merged PR #36: Add support for PKCE for OAuth2. This implements, among
   other things, the client side of MCP auth described in xp-forge/mcp#11
