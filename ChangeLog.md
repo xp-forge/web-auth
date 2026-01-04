@@ -3,6 +3,11 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+## 7.0.0 / ????-??-??
+
+* Changed `SessionBased` authentication to send 401 for sub-requests (e.g.
+  images, fetch(), ...), implementing feature suggested in #38
+  (@thekid)
 * Merged PR #37: Refactor OAuth1 & OAuth2 flows, fixing possible flow error
   states and implifiying their implementation
   (@thekid)

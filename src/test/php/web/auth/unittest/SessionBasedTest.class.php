@@ -1,7 +1,7 @@
 <?php namespace web\auth\unittest;
 
 use lang\IllegalStateException;
-use test\{Assert, Test};
+use test\{Assert, Test, Values};
 use web\auth\{Flow, SessionBased};
 use web\io\{TestInput, TestOutput};
 use web\session\{ForTesting, ISession};
@@ -50,7 +50,30 @@ class SessionBasedTest {
       throw new IllegalStateException('Should not be reached');
     }));
 
+    Assert::equals(302, $res->status());
     Assert::equals('https://sso.example.com/', $res->headers()['Location']);
+  }
+
+  #[Test, Values(['navigate', null])]
+  public function redirects_for_top_level_requests($mode) {
+    $auth= new SessionBased($this->authenticate(null), new ForTesting());
+    $res= $this->handle(['Sec-Fetch-Mode' => $mode], $auth->required(function($req, $res) use(&$user) {
+      throw new IllegalStateException('Should not be reached');
+    }));
+
+    Assert::equals(302, $res->status());
+    Assert::equals('https://sso.example.com/', $res->headers()['Location']);
+  }
+
+  #[Test, Values(['cors', 'no-cors', 'same-origin', 'websocket'])]
+  public function sends_401_for_subrequests($mode) {
+    $auth= new SessionBased($this->authenticate(null), new ForTesting());
+    $res= $this->handle(['Sec-Fetch-Mode' => $mode], $auth->required(function($req, $res) use(&$user) {
+      throw new IllegalStateException('Should not be reached');
+    }));
+
+    Assert::equals(401, $res->status());
+    Assert::equals('Authentication required', $res->output()->body());
   }
 
   #[Test]

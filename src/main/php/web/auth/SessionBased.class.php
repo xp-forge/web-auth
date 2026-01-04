@@ -8,6 +8,7 @@ use web\session\Sessions;
 /** @test web.auth.unittest.SessionBasedTest */
 class SessionBased extends Authentication {
   const TOKEN_LENGTH= 32;
+  const IS_NAVIGATION= ['navigate', null];
 
   private static $random;
   private $flow, $sessions, $lookup;
@@ -86,6 +87,15 @@ class SessionBased extends Authentication {
     }
 
     if (null === $user) {
+
+      // Only start authentication for top-level navigation, issuing 401 errors for
+      // sub-requests, e.g. to images or when using fetch from JavaScript to prevent
+      // serving non-sensical authentication redirects to these requests.
+      if (!in_array($req->header('Sec-Fetch-Mode'), self::IS_NAVIGATION)) {
+        $res->answer(401);
+        $res->send('Authentication required', 'text/plain');
+        return;
+      }
 
       // Authentication may require redirection in order to fulfill its job.
       // In this case, return early from this method w/o passing control on.
