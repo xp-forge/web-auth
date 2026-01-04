@@ -257,6 +257,24 @@ class OAuth2FlowTest extends FlowTest {
     Assert::equals($token, $session->value(self::SNS)['token']);
   }
 
+  /** @deprecated */
+  #[Test]
+  public function gets_access_token_using_flow_service_session_layout() {
+    $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
+    $state= 'SHAREDSTATE';
+    $tokens= newinstance(OAuth2Endpoint::class, [self::TOKENS], [
+      'request' => function($payload) use($token) { return $token; }
+    ]);
+    $fixture= new OAuth2Flow(self::AUTH, $tokens, self::CONSUMER, self::CALLBACK);
+    $session= (new ForTesting())->create();
+    $session->register('oauth2::flow', ['flow' => [$state => self::SERVICE]]);
+
+    $res= $this->authenticate($fixture, '/?code=SERVER_CODE&state='.$state, $session);
+    Assert::equals(self::SERVICE, $res->headers()['Location']);
+    Assert::equals($token, $session->value(self::SNS)['token']);
+  }
+
+
   #[Test, Values(from: 'fragments')]
   public function gets_access_token_and_redirects_to_self_with_fragment($fragment) {
     $token= ['access_token' => '<TOKEN>', 'token_type' => 'Bearer'];
