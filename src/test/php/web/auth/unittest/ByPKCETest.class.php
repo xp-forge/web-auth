@@ -14,7 +14,7 @@ class ByPKCETest {
     yield ['plain', 'test-challenge'];
   }
 
-  #[Test, Values(['S256', 'plain'])]
+  #[Test, Values(ByPKCE::SUPPORTED)]
   public function can_create_with($method) {
     new ByPKCE(self::CLIENT_ID, $method);
   }

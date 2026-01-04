@@ -4,6 +4,8 @@ use lang\IllegalArgumentException;
 
 /** @test web.auth.unittest.ByPKCETest */
 class ByPKCE extends Credentials {
+  const SUPPORTED= ['S256', 'plain'];
+
   private $challenge, $method;
 
   /**
@@ -19,13 +21,12 @@ class ByPKCE extends Credentials {
 
     if ('S256' === $method) {
       $this->challenge= fn($verifier) => JWT::encode(hash('sha256', $verifier, true));
-      $this->method= 'S256';
     } else if ('plain' === $method) {
       $this->challenge= fn($verifier) => $verifier;
-      $this->method= 'plain';
     } else {
-      throw new IllegalArgumentException('Unsupported method '.$method);
+      throw new IllegalArgumentException('Unsupported method '.$method.', expected one of ['.implode(', ', self::SUPPORTED).']');
     }
+    $this->method= $method;
   }
 
   /** @return string */
