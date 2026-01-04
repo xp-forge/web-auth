@@ -93,13 +93,12 @@ class OAuth2Flow extends OAuthFlow {
 
     // Check whether we are continuing an existing authentication flow based on the
     // state given by the server and our session; or if we need to start a new one.
-    // Handle deprecated session layouts from previous library versions.
-    sscanf($request->param('state') ?? '', self::STATE, $state, $fragment);
-    $flow= (
-      $stored['flows'][$state] ??
-      (isset($stored['flow'][$state]) ? ['uri' => $stored['flow'][$state], 'seed' => []] : null) ??
-      (isset($stored['target']) ? ['uri' => $stored['target'], 'seed' => []] : null)
-    );
+    if (null === ($server= $request->param('state'))) {
+      $flow= null;
+    } else {
+      sscanf($server, self::STATE, $state, $fragment);
+      $flow= $this->flow($state, $stored);
+    }
 
     if (null === $flow) {
       $state= bin2hex($this->rand->bytes(16));

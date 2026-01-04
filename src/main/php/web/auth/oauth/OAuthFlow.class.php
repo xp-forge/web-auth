@@ -6,6 +6,15 @@ use web\auth\{Flow, UserInfo, AuthenticationError};
 abstract class OAuthFlow extends Flow {
   protected $callback;
 
+  /** Locate flow stored in session based on a given state, handling deprecated session layouts */
+  protected function flow($state, $stored) {
+    return (
+      $stored['flows'][$state] ??
+      (isset($stored['flow'][$state]) ? ['uri' => $stored['flow'][$state], 'seed' => []] : null) ??
+      (isset($stored['target']) ? ['uri' => $stored['target'], 'seed' => []] : null)
+    );
+  }
+
   /** @return ?util.URI */
   public function callback() { return $this->callback; }
 

@@ -96,13 +96,11 @@ class OAuth1Flow extends OAuthFlow {
 
     // Check whether we are continuing an existing authentication flow based on the
     // state given by the server and our session; or if we need to start a new one.
-    // Handle deprecated session layouts from previous library versions.
-    $state= $request->param('oauth_token');
-    $flow= (
-      $stored['flows'][$state] ??
-      (isset($stored['flow'][$state]) ? ['uri' => $stored['flow'][$state], 'seed' => []] : null) ??
-      (isset($stored['target']) ? ['uri' => $stored['target'], 'seed' => []] : null)
-    );
+    if (null === ($state= $request->param('oauth_token'))) {
+      $flow= null;
+    } else {
+      $flow= $this->flow($state, $stored);
+    }
 
     if (null === $flow) {
       $state= $this->request('/request_token', null, ['oauth_callback' => $callback])['oauth_token'];
