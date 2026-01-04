@@ -3,6 +3,7 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Added PHP 8.6 to the test matrix - @thekid
 * Merged PR #36: Add support for PKCE for OAuth2. This implements, among
   other things, the client side of MCP auth described in xp-forge/mcp#11
   (@thekid)
