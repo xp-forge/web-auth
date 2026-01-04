@@ -60,18 +60,10 @@ class OAuth2Flow extends OAuthFlow {
     if (time() < $claims['expires']) return null;
 
     // Refresh token
-    $result= $this->backend->acquire([
+    return ByAccessToken::from($this->backend->acquire([
       'grant_type'    => 'refresh_token',
       'refresh_token' => $claims['refresh'],
-    ]);
-    return new ByAccessToken(
-      $result['access_token'],
-      $result['token_type'] ?? 'Bearer',
-      $result['scope'] ?? null,
-      $result['expires_in'] ?? null,
-      $result['refresh_token'] ?? null,
-      $result['id_token'] ?? null
-    );
+    ]));
   }
 
   /**
@@ -84,36 +76,35 @@ class OAuth2Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace);
+    $stored= $session->value($this->namespace) ?? ['state' => []];
 
-    // We have an access token, reset state and return an authenticated session
-    // See https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
-    // and https://tools.ietf.org/html/rfc6749#section-5.1
+    // We have an access token, remove and return an authenticated session. The
+    // authentication implementation registers the user and transmits the session.
     if ($token= $stored['token'] ?? null) {
       unset($stored['token']);
       $session->register($this->namespace, $stored);
 
-      return new ByAccessToken(
-        $token['access_token'],
-        $token['token_type'] ?? 'Bearer',
-        $token['scope'] ?? null,
-        $token['expires_in'] ?? null,
-        $token['refresh_token'] ?? null,
-        $token['id_token'] ?? null
-      );
+      return ByAccessToken::from($token);
     }
 
+    // Enter authentication flow, resolving callback URI against the curren request.
     $uri= $this->url(true)->resolve($request);
     $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
 
-    // Start authorization flow to acquire an access token
-    $server= $request->param('state');
-    if (null === $server || null === $stored) {
+    // Check whether we are continuing an existing authentication flow based on the
+    // state given by the server and our session; or if we need to start a new one.
+    if (null === ($server= $request->param('state'))) {
+      $flow= null;
+    } else {
+      sscanf($server, self::STATE, $state, $fragment);
+      $flow= $this->flow($state, $stored);
+    }
+
+    if (null === $flow) {
       $state= bin2hex($this->rand->bytes(16));
       $seed= $this->backend->seed();
 
-      $stored??= ['flow' => []];
-      $stored['flow'][$state]= ['uri' => (string)$uri, 'seed' => $seed];
+      $stored['flows'][$state]= ['uri' => (string)$uri, 'seed' => $seed];
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
@@ -128,59 +119,34 @@ class OAuth2Flow extends OAuthFlow {
       $target= $this->auth->using()->params($this->backend->pass($params, $seed))->create();
 
       // If a URL fragment is present, append it to the state parameter, which
-      // is passed as the last parameter to the authentication service.
-      $this->redirect($response, $target, sprintf('
-        var target = "%1$s";
-        var hash = document.location.hash.substring(1);
-
+      // is always passed as the last parameter to the authentication service.
+      $separator= self::FRAGMENT;
+      return $this->redirect($response, $target, <<<JS
+        var hash = document.location.hash;
         if (hash) {
-          document.location.replace(target + "%2$s" + encodeURIComponent(hash));
+          document.location.replace('{$target}{$separator}' + encodeURIComponent(hash.substring(1)));
         } else {
-          document.location.replace(target);
-        }',
-        $target,
-        self::FRAGMENT
-      ));
-      return null;
-    }
+          document.location.replace('{$target}');
+        }
+        JS
+      );
+    } else {
 
-    // Continue authorization flow, handling previous session layout
-    $state= explode(self::FRAGMENT, $server);
-    if (
-      ($target= $stored['flow'][$state[0]] ?? null) ||
-      (($target= $stored['target'] ?? null) && ($state[0] === $stored['state']))
-    ) {
-      unset($stored['flow'][$state[0]]);
-
-      // Target is an array for old session layout and during transition
-      if (is_array($target)) {
-        $uri= $target['uri'];
-        $seed= $target['seed'];
-      } else {
-        $uri= $target;
-        $seed= [];
-      }
-
-      // Exchange the auth code for an access token
+      // Exchange the auth code for an access token, then remove the stored state.
       $params= [
         'grant_type'    => 'authorization_code',
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
-        'state'         => $server
+        'state'         => $state
       ];
-      $stored['token']= $this->backend->acquire($params, $seed);
+      $stored['token']= $this->backend->acquire($params, $flow['seed']);
+
+      unset($stored['flows'][$state], $stored['flow'][$state]);
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
       // Redirect to self, using encoded fragment if present
-      $this->finalize($response, $uri.(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
-      return null;
+      return $this->finalize($response, $flow['uri'].(isset($fragment) ? '#'.urldecode($fragment) : ''));
     }
-
-    throw new IllegalStateException(sprintf(
-      'Flow error, unknown server state %s expecting one of %s',
-      $state[0],
-      implode(', ', array_keys($stored['flow'] ?? [$stored['state'] => true]))
-    ));
   }
 }

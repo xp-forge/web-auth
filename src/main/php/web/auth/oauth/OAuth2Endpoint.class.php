@@ -83,7 +83,7 @@ class OAuth2Endpoint {
   /**
    * Returns authorization parameters
    *
-   * @param  [:string] $grant
+   * @param  [:string] $auth
    * @param  [:string] $seed
    * @return [:string]
    */

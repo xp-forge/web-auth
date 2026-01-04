@@ -76,9 +76,10 @@ class OAuth1Flow extends OAuthFlow {
    * @throws lang.IllegalStateException
    */
   public function authenticate($request, $response, $session) {
-    $stored= $session->value($this->namespace);
+    $stored= $session->value($this->namespace) ?? ['flows' => []];
 
-    // We have an access token, reset state and return an authenticated session
+    // We have an access token, remove and return an authenticated session. The
+    // authentication implementation registers the user and transmits the session.
     if ($token= $stored['token'] ?? null) {
       unset($stored['token']);
       $session->register($this->namespace, $stored);
@@ -89,85 +90,69 @@ class OAuth1Flow extends OAuthFlow {
       )));
     }
 
-    $server= $request->param('oauth_token');
+    // Enter authentication flow, resolving callback URI against the curren request.
     $uri= $this->url(true)->resolve($request);
     $callback= $this->callback ? $uri->resolve($this->callback) : $this->service($uri);
 
-    // Start authenticaton flow by obtaining request token and store for later use
-    if (null === $server || null === $stored) {
-      $token= $this->request('/request_token', null, ['oauth_callback' => $callback])['oauth_token'];
-      $stored??= ['flow' => []];
-      $stored['flow'][$token]= (string)$uri;
+    // Check whether we are continuing an existing authentication flow based on the
+    // state given by the server and our session; or if we need to start a new one.
+    if (null === ($state= $request->param('oauth_token'))) {
+      $flow= null;
+    } else {
+      $flow= $this->flow($state, $stored);
+    }
+
+    if (null === $flow) {
+      $state= $this->request('/request_token', null, ['oauth_callback' => $callback])['oauth_token'];
+
+      $stored['flows'][$state]= ['uri' => (string)$uri, 'seed' => []];
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
       // Redirect the user to the authorization page
-      $target= sprintf(
-        '%s/authenticate?oauth_token=%s&oauth_callback=%s',
-        $this->service,
-        urlencode($token),
-        urlencode($callback)
-      );
+      $token= urlencode($state);
+      $target= sprintf('%s/authenticate?oauth_token=%s&oauth_callback=%s', $this->service, $token, urlencode($callback));
 
       // If a URL fragment is present, call ourselves to capture it inside the
       // session; otherwise redirect the OAuth authentication service directly.
-      $this->redirect($response, $target, sprintf('
-        var target = "%1$s";
-        var hash = document.location.hash.substring(1);
-
+      $separator= self::FRAGMENT;
+      return $this->redirect($response, $target, <<<JS
+        var hash = document.location.hash;
         if (hash) {
-          var s = document.createElement("script");
-          s.src = "%2$s?oauth_token=%4$s&%3$s=" + encodeURIComponent(hash) + "&" + Math.random();
+          var target = '{$target}';
+          var s = document.createElement('script');
+          s.src = '{$uri}?oauth_token={$token}&{$separator}=' + encodeURIComponent(hash.substring(1)) + '&' + Math.random();
           document.body.appendChild(s);
         } else {
-          document.location.replace(target);
-        }',
-        $target,
-        $uri,
-        self::FRAGMENT,
-        urlencode($token)
-      ));
-      return null;
-    }
+          document.location.replace('{$target}');
+        }
+        JS
+      );
+    } else if ($fragment= $request->param(self::FRAGMENT)) {
 
-    // Store fragment, then make redirection continue (see redirect() above)
-    $target= $stored['flow'][$server] ?? null;
-    if ($target && ($fragment= $request->param(self::FRAGMENT))) {
-      if ($t= strstr($stored['flow'][$server], '#', true)) {
-        $stored['flow'][$server]= $t.'#'.$fragment;
-      } else {
-        $stored['flow'][$server].= '#'.$fragment;
-      }
+      // Caputre fragment, then continue redirection, see the script above
+      $flow['uri']= substr($flow['uri'], 0, strcspn($flow['uri'], '#')).'#'.$fragment;
+      $stored['flows'][$state]= $flow;
 
       $session->register($this->namespace, $stored);
       $session->transmit($response);
-      $response->send('document.location.replace(target)', 'text/javascript');
+      $response->send('document.location.replace(target);', 'text/javascript');
       return null;
-    }
-
-    // Back from authentication redirect, upgrade request token to access token
-    // Handle previous session layout
-    if ($target || (($target= $stored['target'] ?? null) && ($server === $stored['oauth_token']))) {
-      unset($stored['flow'][$server]);
+    } else {
 
       // Back from authentication redirect, upgrade request token to access token
       $stored['token']= $this->request(
         '/access_token',
-        $server,
+        $state,
         ['oauth_verifier' => $request->param('oauth_verifier')]
       );
+
+      unset($stored['flows'][$state], $stored['flow'][$state]);
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
-      // Redirect to self
-      $this->finalize($response, $target);
-      return null;
+      // Redirect to self, using captured fragment if present
+      return $this->finalize($response, $flow['uri']);
     }
-
-    throw new IllegalStateException(sprintf(
-      'Flow error, unknown server state %s expecting one of %s',
-      $server,
-      implode(', ', array_keys($stored['flow'] ?? [$stored['oauth_token'] => true]))
-    ));
   }
 }
