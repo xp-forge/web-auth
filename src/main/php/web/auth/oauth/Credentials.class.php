@@ -8,7 +8,7 @@ abstract class Credentials {
 
   static function __static() {
     self::$UNSET= new class(null) extends Credentials {
-      public function params(string $endpoint, $time= null): array {
+      public function params(string $endpoint, array $seed= []): array {
         throw new IllegalStateException('No credentials set');
       }
     };
@@ -23,6 +23,12 @@ abstract class Credentials {
     $this->key= $key;
   }
 
+  /** Returns authorization seed */
+  public function seed(): array { return []; }
+
+  /** Returns parameters to be passed on to authorization */
+  public function pass(array $seed): array { return []; }
+
   /** Returns parameters to be used in authentication process */
-  public abstract function params(string $endpoint, $time= null): array;
+  public abstract function params(string $endpoint, array $seed= []): array;
 }

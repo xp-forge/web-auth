@@ -110,8 +110,10 @@ class OAuth2Flow extends OAuthFlow {
     $server= $request->param('state');
     if (null === $server || null === $stored) {
       $state= bin2hex($this->rand->bytes(16));
+      $seed= $this->backend->seed();
+
       $stored??= ['flow' => []];
-      $stored['flow'][$state]= (string)$uri;
+      $stored['flow'][$state]= ['uri' => (string)$uri, 'seed' => $seed];
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
@@ -121,9 +123,9 @@ class OAuth2Flow extends OAuthFlow {
         'client_id'     => $this->backend->clientId(),
         'scope'         => implode(' ', $this->scopes),
         'redirect_uri'  => $callback,
-        'state'         => $state
+        'state'         => $state,
       ];
-      $target= $this->auth->using()->params($params)->create();
+      $target= $this->auth->using()->params($this->backend->pass($params, $seed))->create();
 
       // If a URL fragment is present, append it to the state parameter, which
       // is passed as the last parameter to the authentication service.
@@ -150,18 +152,28 @@ class OAuth2Flow extends OAuthFlow {
     ) {
       unset($stored['flow'][$state[0]]);
 
+      // Target is an array for old session layout and during transition
+      if (is_array($target)) {
+        $uri= $target['uri'];
+        $seed= $target['seed'];
+      } else {
+        $uri= $target;
+        $seed= [];
+      }
+
       // Exchange the auth code for an access token
-      $stored['token']= $this->backend->acquire([
+      $params= [
         'grant_type'    => 'authorization_code',
         'code'          => $request->param('code'),
         'redirect_uri'  => $callback,
         'state'         => $server
-      ]);
+      ];
+      $stored['token']= $this->backend->acquire($params, $seed);
       $session->register($this->namespace, $stored);
       $session->transmit($response);
 
       // Redirect to self, using encoded fragment if present
-      $this->finalize($response, $target.(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
+      $this->finalize($response, $uri.(isset($state[1]) ? '#'.urldecode($state[1]) : ''));
       return null;
     }
 
