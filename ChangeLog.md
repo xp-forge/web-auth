@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #36: Add support for PKCE for OAuth2. This implements, among
+  other things, the client side of MCP auth described in xp-forge/mcp#11
+  (@thekid)
+
 ## 6.2.0 / 2026-01-01
 
 * Made the `web.auth.oauth.JWT` class implement the `lang.Value` interface
