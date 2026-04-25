@@ -3,6 +3,10 @@ Web Authentication change log
 
 ## ?.?.? / ????-??-??s
 
+## 7.2.0 / 2026-04-25
+
+* Made compatible with `xp-framework/http` version 11.0 - @thekid
+
 ## 7.1.0 / 2026-01-04
 
 * Added support for `xp-forge/sessions` version 4.0+ - @thekid
