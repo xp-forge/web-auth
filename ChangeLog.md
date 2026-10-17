@@ -1,7 +1,11 @@
 Web Authentication change log
 =============================
 
-## ?.?.? / ????-??-??s
+## ?.?.? / ????-??-??
+
+## 7.3.0 / 2026-10-17
+
+* Added compatibility with `xp-forge/json` version 7.0+ - @thekid
 
 ## 7.2.0 / 2026-04-25
 
